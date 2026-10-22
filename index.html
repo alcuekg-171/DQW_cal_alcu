@@ -1,0 +1,3726 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>斬撃体技ダメージ計算</title>
+	<style>
+		/* CSS */
+        body{
+            min-height: 100%;
+            overflow-y: auto;
+            overflow-x: auto;
+            white-space: nowrap;
+
+            background-image: url(dqw_background1.png);
+            background-size: 45%;
+            background-position: top 0px left 80px; 
+
+        }
+
+        img[name="header1"]{
+            height: 60px;
+        }
+
+        .mr20{
+            margin-right: 20px;
+        }
+
+		h1 {
+			color: #90103b;
+            height: 40px;
+            text-align: center;
+        }
+        h1:before{
+            content: "";
+            display: block;
+            height: 4px;
+            
+            background: -webkit-linear-gradient(to right, #666666, #dddddd,#888888, #555555);
+            background: linear-gradient(to right, #666666, #dddddd,#888888, #555555);
+        }
+        h1:after{
+            content: "";
+            display: block;
+            height: 4px;
+            
+            background: -webkit-linear-gradient(to right, #666666, #dddddd,#888888, #555555);
+            background: linear-gradient(to right, #666666, #dddddd,#888888, #555555);
+        }
+
+        h2 {
+            padding-left: 35px;
+            height: 25px;
+            font-size: 17px;
+            text-align: left;
+            background-image: url(dqw_simu_header1.png);
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+
+        main_contents{
+            display: block;
+            padding-left: 2%;
+            padding-right: 2%;
+        }
+
+        input,select{
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }/*
+        label[name="c"]{
+            position: relative;
+            cursor: pointer;
+        }
+        
+        label:before{
+            content: "";
+            display: block;
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 16px;
+            top: 1px;
+            border: solid 2px #CCCCCC;
+            border-radius: 3px;
+            transition: all ease-in-out 0.125s;
+        }
+        label:after{
+            content: "";
+            position: absolute;
+            top: 11px;
+            left: 5px;
+            transform: rotate(-45deg) scaleX(0);
+            transform-origin: left;
+            border-left: 2px solid #FFFFFF;
+            border-bottom: 2px solid #FFFFFF;
+            transition: 0.125s ease-in-out;
+        }*/
+        /*input:checked + label:before{
+            background-color: #bf0707;
+            border-color: #bf0707;
+        }
+        input:checked + label:after{
+            transform: rocate(-45deg) scaleX(1);
+        }*/
+
+        input{
+            border-radius: 2px;
+        }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button{
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        input:not([type="checkbox"]){
+            width: 60px;
+            background-color: #f9f9f9;
+            border: 1px solid #000000aa;
+        }
+        input:focus{
+            box-shadow: 0 0 5px 0 rgb(121, 121, 121);
+            border: 1px solid #FFF;
+            outline: 0;
+        }
+
+        input[type="checkbox"]{
+            accent-color: #b32a2a;
+        }
+        input[type="checkbox"]:disabled{
+            opacity: 0.7;
+        }
+
+        label,option,summary,a1{
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        summary {
+            padding-top: 4px;
+            padding-bottom: 4px;
+            position: relative;
+            display: block;
+            padding-left: 25px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        summary:hover {
+            color: #840000;
+            background-color: #EFEFEF;
+            transition: 0.5s;
+        }
+        summary:hover::before{
+            transform-origin: left top;
+            transform: scaleX(1);
+        }
+        summary:hover::after{
+            border: #AAAAAA;
+        }
+        summary::-webkit-details-marker {
+            display: none;
+        }
+        summary:before,summary:after {
+            content: "";
+            margin: auto;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+        }
+        summary:not([class="child"]):before {
+            position: absolute;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            font-weight:bold;
+            color: transparent; 
+            background: linear-gradient(330deg, #212121 0%, #424242 40%, #BBBBBB 55%, #424242 80%, #212121 95% 100%); 
+            transition: 0.7s;
+        }
+        summary:not([class="child"]):after {
+            position: absolute;
+            left: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 3.3px solid #D7D7D7;
+            box-sizing: border-box;
+            transition: 0.7s;
+        }
+        @keyframes glow {
+            0% {
+                box-shadow:0 0 10px #ff0, 0 0 15px #ff0;
+                border: 3.3px solid #ff0;
+                opacity: 0.8;
+            }
+            25% {
+                box-shadow:0 0 10px rgb(255, 220, 0), 0 0 15px rgb(255, 220, 0);
+                border: 3.3px solid rgb(255, 220, 0);
+                opacity: 0.8;
+            }
+            50% {
+                box-shadow:0 0 10px #ff0, 0 0 20px #ff0;
+                border: 3.3px solid #ff0;
+                opacity: 0.8;
+            }
+            75% {
+                box-shadow:0 0 10px rgb(210, 255, 0), 0 0 15px rgb(210, 255, 0);
+                border: 3.3px solid rgb(210, 255, 0);
+                opacity: 0.8;
+            }
+            100%{
+                box-shadow:0 0 10px #ff0, 0 0 15px #ff0;
+                border: 3.3px solid #ff0;
+                opacity: 0.8;;
+            }
+        }
+        details:not([class="child"])[open] summary:not([class="child"]):before {
+            background: linear-gradient(330deg, #111111 0%, #323232 40%, #AAAAAA 55%, #323232 80%, #111111 95% 100%); 
+        }
+        details:not([class="child"])[open] summary:not([class="child"]):after {
+            animation: glow 10s infinite ease;
+        }
+        details[open] .details-content {
+            animation: fadeIn 1s ease;
+        }
+        summary[class="child"]:before {
+            position: absolute;
+            left: 1.5px;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+
+            line-height:0.95em;
+            font-weight:bold;
+            color: transparent; 
+            background: linear-gradient(330deg, #212121 0%, #424242 40%, #BBBBBB 55%, #424242 80%, #212121 95% 100%); 
+
+        }
+        summary[class="child"]:after {
+            position: absolute;
+            left: 4.5px;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            border: 3px solid #D7D7D7;
+            box-sizing: border-box;
+            transition: 0.7s;
+        }
+        details[class="child"][open] summary[class="child"]:before {
+            background: linear-gradient(330deg, #111111 0%, #323232 40%, #AAAAAA 55%, #323232 80%, #111111 95% 100%);
+        }
+        details[class="child"][open] summary[class="child"]:after {
+            animation: glow 10s infinite ease;
+        }
+
+
+        select {
+            position: relative;
+            border: none;
+            cursor: pointer;
+            
+            border-radius: 2px;
+        }
+        /*
+        select,::picker(select){
+            appearance: base-select;
+
+            font-size: 14px;
+            padding: 0 5px;
+            margin: 0;
+        }
+        ::picker(select){
+            opacity: 0;
+            transform: translateY(-0.5px);
+            transition: opacity 0.5s, transform 0.3s;
+        }
+        select:open::picker(select){
+            opacity: 1;
+            transform: translateY(0);
+        }*/
+        option {
+            position: absolute;
+            background: #F5F5F5;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            list-style: none;
+        }
+        option:first-child{
+            background: #ffef7729;
+        }
+        option:nth-child(n):not(:first-child){
+            background: #f4f4f4ab;
+        }
+
+        select:not([class="long"]) {
+            width: 100px;
+            background-color: #f9f9f9;
+            border: 1px solid #000000;
+        }
+        select[class="long"] {
+            background-color: #f9f9f9;
+            border: 1px solid #000000;
+        }
+        select:focus{
+            box-shadow: 0 0 5px 0 rgb(121, 121, 121);
+            border: 1px solid #000000;
+            outline: 0;
+        }
+
+        details[class='big']{
+            overflow-x: auto;
+            width: 96%;
+            display: block;
+            margin: auto;
+            border: 3.5px double #413636c7;
+            border-radius: 5px;
+            background-color: #fef8f0;
+        }
+
+        span[class="min"]{
+            display: block;
+            height: 10px;
+        }
+
+        input:disabled,select:disabled{
+            background: #AAAAAA;
+        }
+
+
+        button[class="last"]{
+            width: 50%;
+            height: 50px;
+            border-radius: 10px;
+            left: 25%;
+            display: block;
+            box-shadow: inset 2px 2px 3px #FFFFFFEE, inset -2px -2px 3px #00000077;
+            -ms-transform: translateX(50%);
+            -webkit-transform: translateX(50%);
+            transform: translateX(50%);
+            background: linear-gradient(0deg, #ec7846 0%, #fc9835 5%, #fda98d 95%, #ffe4e4 100%); 
+            font-size: 20px;
+            font-weight: bolder;
+            letter-spacing: 3px;
+            color: #000000;
+            text-shadow: 0.5px 0px #005b56;
+        }
+        button[class="last"]:active{
+            box-shadow: inset -2px -2px 3px #FFFFFFEE, inset 2px 2px 3px #00000077;
+            background: linear-gradient(180deg, #ef7676 0%, #ff9595 5%, #ffc7c7 95%, #ffe4e4 100%); 
+            color: #4a5454;
+        }
+        button:disabled{
+            border: 2px solid #000000;
+        }
+        div[class="output_1"]{
+            overflow-x: auto;
+            width: 95%;
+            border-radius: 5px;
+            font-size: large;
+            text-align: center;
+            margin: 0 auto;
+            background: linear-gradient(90deg, #ffefc8 0%, #fff2e4 5%, #fff7e6 50%, #fff2e4 95%, #ffefc8 100%); 
+            border: 2px solid #000000;
+        }
+        div[class="output_3"]{
+            font-size: 13px;
+        }
+
+        p[class="output_header"]{
+            background: linear-gradient(0deg, #fdcf94 0%, #f9ddb8 30%, #ffefc9 50%, #f9ddb8 70%, #fdcf94 100%); 
+            border-bottom: 2px solid #000000;
+            line-height: 55px;
+            font-size: 20px;
+            font-weight: bolder;
+            margin: 0px 0px 10px 0px;
+        }
+        p[class="spe_header"]{
+            width: 100%;
+            margin-bottom: 0px;
+            font-size: 18px;
+            background: linear-gradient(90deg, #ffeab5 0%, #fce9d5 10%, #fcf1d7 50%, #fce9d5 90%, #ffeab5 100%); ;
+            border-top: 3px double #3f0000;
+            border-bottom: 3px double #3f0000;
+        }
+        span[class="out"]{
+            display: block;
+            height: 7px;
+        }
+
+        button[id="godrage_h_button"]{
+            position: relative;
+            top: 50%;
+            transform: translateY(-15%);
+            vertical-align: middle;           
+            border-radius: 5px;
+            border: 1.5px solid #707070;
+            box-shadow: inset 1px 1px 4px #FFFFFFEE, inset -1px -1px 4px #00000077;
+            background-color: #e7e7e7;
+            font-size: 10px;
+        }
+        button[id="godrage_h_button"]:disabled{
+            border: 1px solid #8a8a8a;
+        }
+        button[id="godrage_h_button"]:not([disabled]):active{
+            box-shadow: inset -1px -1px 4px #FFFFFFEE, inset 1px 1px 4px #00000077;
+        }
+
+        button[id="specifics"]{
+            border: none;
+            font-weight: 500;
+            margin-top: 5px;
+            padding: 5px;
+            width: 100%;
+            box-shadow: inset 2px 2px 3px #FFFFFFEE, inset -2px -2px 3px #00000077;
+            background: #fff3dd;
+            border-top: 4px double #000000;
+        }
+        button[id="specifics"]:active{
+            box-shadow: inset -2px -2px 3px #FFFFFFEE, inset 2px 2px 3px #00000077;
+            color: #888888;
+        }
+        button[id="source"]{
+            float: right;
+        }
+
+        table[class="basic_tables"]{
+            border-collapse: collapse;
+            width: 100%;
+            background-color: #fffcf7;
+        }
+        table[class="basic_tables"] td{
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        td[class="td_dot"]{
+            border-left-style: dotted;
+            text-align: right;
+        }
+
+        table[class="sub_tables"]{
+            border-collapse: collapse;
+            width: 95%;
+            margin: auto;
+        }
+        table[class="sub_tables"] td{
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+        tr[class="tr_top_double_bottom_solid"]{
+            border-top-style: double;
+            border-bottom-style: solid;
+            border-top-width: 1;
+        }
+        tr[class="tr_top_double"]{
+            border-top-style: double;
+            border-top-width: 1;
+        }
+        tr[class="tr_top_solid"]{
+            border-top-style: solid;
+            border-top-width: 1;
+        }
+        tr[class="tr_top_dot"]{
+            border-top-style: dotted;
+            border-top-width: 1;
+        }
+        tr[class="tr_top_none"]{
+            border-top-style: dotted;
+            border-top-width: 1;
+            border-top-color: transparent;
+        }
+        td[class="td_half"]{
+            width: 50%;
+        }
+        td[class="td_quarter"]{
+            width: 25%;
+        }
+        td[class="padd1"]{
+            width: 0;
+        }
+
+        table[class="subsub_tables"]{
+            border-collapse: collapse;
+            width: 95%;
+            margin: auto;
+            margin-bottom: 10px;
+        }
+        table[class="subsub_tables"] td{
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+
+        img[class="icon"]{
+            float: right;
+            top: 50%;
+            transform: translateY(10%);
+            width: 20px;
+            height: auto;
+        }
+
+
+        a1{
+            border-radius: 5px;
+            background-color: #ff00001f;
+            font-weight: 600;
+        }
+        a2{
+            font-weight: 600;
+        }
+        a3{
+            font-size: 13px;
+            color: #616161;
+            /*-webkit-text-stroke: 0.1px #FFFFFF*/
+            background: transparent;
+        }
+        a5{
+            font-weight: 500;
+        }
+	</style>
+</head>
+
+<body>
+	<!-- 表示 -->
+	<h1>DQW ダメージ計算機</h1>
+    <h2>斬撃・体技ダメージ&emsp;モード<!--<input type="radio" id="gaming">
+        <label for="gaming">ゲーミング</label>-->
+        <button id="source" onclick="location.href='source.html'">参考元の一覧はこちら</button>
+    </h2>
+    <main_contents>
+    &emsp;<a3>※未入力項目は計算時に"補正なし"として自動補完されます．</a3>
+    
+
+    <p>
+    <button onclick="
+            sampledata();
+            " id="sample">
+            サンプル入力ボタン
+    </button>&ensp;<a3>テスト用ステータスを自動入力します．</a3><br>
+    <table border="2" class="basic_tables">
+    <tr><td>
+    <span class="mr20"><label for="atk">攻撃力</label>
+        </td>
+        <td class="td_dot">
+        <input  id="atk" type="number" maxlength="6" ></span>
+        </td>
+        <td>
+    <label for="atk_ud">攻撃力変化</label>
+        </td>
+        <td class="td_dot">
+    <select id="atk_ud" size="1">
+        <option value="0">なし</option>
+        <option value="2">1段階up</option>
+        <option value="4">2段階up</option>
+        <option value="6">3段階up</option>
+        <option value="-2">1段階down</option>
+        <option value="-4">2段階down</option>
+        <option value="-6">3段階down</option>
+    </select>
+    </td></tr>
+    <tr><td>
+    <span class="mr20"><label for="def">守備力</label>
+        </td>
+        <td class="td_dot">
+        <input  id="def" type="number" maxlength="6" ></span>
+        </td>
+        <td>
+    <label for="def_ud">守備力変化</label>
+        </td>
+        <td class="td_dot">
+    <select id="def_ud" size="1">
+        <option value="0">なし</option>
+        <option value="2">1段階up</option>
+        <option value="4">2段階up</option>
+        <option value="6">3段階up</option>
+        <option value="-2">1段階down</option>
+        <option value="-4">2段階down</option>
+        <option value="-6">3段階down</option>
+    </select>
+    </td></tr>
+    </table>
+    <!--
+    <button onclick = "clicked();">計算実行</button>
+    <div  id="out_bv"></div>
+    -->
+
+    </p>
+
+    <p>
+            
+    <!--
+    <label for="select_skill">★スキル入力ガイド</label>
+    <select id="select_skill">
+        <option value="0">OFF</option>
+        <option value="2-1-1-0185-0185">アイシクルバースト</option>
+        <option value="1-1-0-0195-0585">アゲハ乱舞</option>
+        <option value="0-1-0-0160-0160">アサシンアタック</option>
+        <option value="0-1-0-0120-0120">あしばらい</option>
+        <option value="0-1-0-0400-0400">アバンストラッシュ</option>
+        <option value="0-1-0-0320-0320">アンカーブロウ</option>
+        <option value="0-1-0-0230-0230">アースエッジ</option>
+        <option value="2-1-0-0220-0220">アーススイング</option>
+        <option value="0-1-0-0140-0140">イカスミショット</option>
+        <option value="0-1-0-0140-0140">いなずま回転斬り</option>
+        <option value="0-1-0-0140-0140">いなずま斬り</option>
+        <option value="0-1-0-0140-0140">いのりのつるぎ</option>
+        <option value="0-1-0-0140-0140">インフィニティエッジ</option>
+        <option value="0-1-0-0140-0140">ウィッチウィップ</option>
+        <option value="0-1-0-0140-0140">ウィングブロウ</option>
+        <option value="0-1-0-0140-0140">ウィンドスラッシュ</option>
+        <option value="0-1-0-0140-0140">ウィンドスラッシュ改</option>
+        <option value="0-1-0-0140-0140">うなれ！真空の斧よ！</option>
+        <option value="0-1-0-0140-0140">エターナルジャッジメント</option>
+        <option value="0-1-0-0140-0140">エターナル・サルベーション</option>
+        <option value="0-1-0-0140-0140">おぞましいおたけび</option>
+        <option value="0-1-0-0140-0140">オノまつり</option>
+        <option value="0-1-0-0140-0140">オノむそう</option>
+        <option value="0-1-0-0140-0140">おやぶんブロウ</option>
+        <option value="0-1-0-0140-0140">かえん斬り</option>
+        <option value="0-1-0-0140-0140">カオスエッジ</option>
+        <option value="0-1-0-0140-0140">かまいたち</option>
+        <option value="0-1-0-0140-0140">かまいたち改</option>
+        <option value="0-1-0-0140-0140">かめはめ波</opton>
+        <option value="0-1-0-0140-0140">カラミティストーム</option>
+        <option value="0-1-0-0140-0140">カラミティストーム改</option>
+        <option value="0-1-0-0140-0140">カンダタインパクト</option>
+        <option value="0-1-0-0140-0140">カンダタインパクト改</option>
+        <option value="0-1-0-0140-0140">カンダタタックル</option>
+        <option value="0-1-0-0140-0140">ガイアブレード</option>
+        <option value="0-1-0-0140-0140">ガイアブレード改</option>
+        <option value="0-1-0-0140-0140">ガーディアンインパクト</option>
+        <option value="0-1-0-0140-0140">キングウィップ</option>
+        <option value="0-1-0-0140-0140">キングダムソード</option>
+        <option value="0-1-0-0140-0140">キングダムソード改</option>
+        <option value="0-1-0-0140-0140">ギガスラッシュ</option>
+        <option value="0-1-0-0140-0140">ギガスラッシュ改</option>
+        <option value="0-1-0-0140-0140">ギガソード</option>
+        <option value="0-1-0-0140-0140">ギガソード改</option>
+        <option value="0-1-0-0140-0140">ギガブレイク</option>
+        <option value="0-1-0-0140-0140">ギガブレード</option>
+        <option value="0-1-0-0140-0140">ギガンテスの一撃</option>
+        <option value="0-1-0-0140-0140">ギガ空裂斬</option>
+        <option value="0-1-0-0140-0140">ギラウィップ</option>
+        <option value="0-1-0-0140-0140">グライディングバード</option>
+        <option value="0-1-0-0140-0140">グランエスパーダ</option>
+        <option value="0-1-0-0140-0140">グランエスパーダ改</option>
+        <option value="0-1-0-0140-0140">グランドクルス</option>
+        <option value="0-1-0-0140-0140">グランドネビュラ</option>
+        <option value="0-1-0-0140-0140">けものづき</option>
+        <option value="0-1-0-0140-0140">コキュートス</option>
+        <option value="0-1-0-0140-0140">こぶん乱舞</option>
+        <option value="0-1-0-0140-0140">こぶん乱舞改</option>
+        <option value="0-1-0-0140-0140">ごうかいなきりさき</option>
+        <option value="0-1-0-0140-0140">ゴッドスマッシュ</option>
+        <option value="0-1-0-0140-0140">ゴッドばくれつけん</option>
+        <option value="0-1-0-0140-0140">ゴールデンクラッシュ</option>
+        <option value="0-1-0-0140-0140">サキュバスウィンク</option>
+        <option value="0-1-0-0140-0140">さみだれ斬り</option>
+        <option value="0-1-0-0140-0140">さみだれ突き</option>
+        <option value="0-1-0-0140-0140">しおさいのセレナーデ</option>
+        <option value="0-1-0-0140-0140">しおさいのセレナーデ改</option>
+        <option value="0-1-0-0140-0140">シノビカッター</option>
+        <option value="0-1-0-0140-0140">しばり打ち</option>
+        <option value="0-1-0-0140-0140">しびれ突き</option>
+        <option value="0-1-0-0140-0140">シャイニングエッジ</option>
+        <option value="0-1-0-0140-0140">シャイニングボウ</option>
+        <option value="0-1-0-0140-0140">シャイニングボウ【錬】</option>
+        <option value="0-1-0-0140-0140">シャインスコール</option>
+        <option value="0-1-0-0140-0140">しんくうげり</option>
+        <option value="0-1-0-0140-0140">しんくうは</option>
+        <option value="0-1-0-0140-0140">しんくう打ち</option>
+        <option value="0-1-0-0140-0140">シールドバッシュ</option>
+        <option value="0-1-0-0140-0140">じごくのはどう</option>
+        <option value="0-1-0-0140-0140">ジゴスパーク</option>
+        <option value="0-1-0-0140-0140">ジゴスパーク【錬】</option>
+        <option value="0-1-0-0140-0140">ジャッジパラライズ</option>
+        <option value="0-1-0-0140-0140">スイカスライサー</option>
+        <option value="0-1-0-0140-0140">スパークショット</option>
+        <option value="0-1-0-0140-0140">スピニングブラスト</option>
+        <option value="0-1-0-0140-0140">スライムブロウ</option>
+        <option value="0-1-0-0140-0140">スラキャノン・フルバースト</option>
+        <option value="0-1-0-0140-0140">スラスラッシュ</option>
+        <option value="0-1-0-0140-0140">スリープダガー</option>
+        <option value="0-1-0-0140-0140">スーパーノヴァ</option>
+        <option value="0-1-0-0140-0140">スーパーノヴァ改</option>
+        <option value="0-1-0-0140-0140">せいけんづき</option>
+        <option value="0-1-0-0140-0140">せいけん光爆撃</option>
+        <option value="0-1-0-0140-0140">セクシービーム</option>
+        <option value="0-1-0-0140-0140">セクシービーム【錬】</option>
+        <option value="0-1-0-0140-0140">ソウルイミテーション</option>
+        <option value="0-1-0-0140-0140">タイガークロー</option>
+        <option value="0-1-0-0140-0140">たいぼく斬</option>
+        <option value="0-1-0-0140-0140">たつまき</option>
+        <option value="0-1-0-0140-0140">タナトスハント</option>
+        <option value="0-1-0-0140-0140">タナトスハント改</option>
+        <option value="0-1-0-0140-0140">タバササイクロン</option>
+        <option value="0-1-0-0140-0140">ダーククライ</option>
+        <option value="0-1-0-0140-0140">ダーククライ改</option>
+        <option value="0-1-0-0140-0140">ダークショット</option>
+        <option value="0-1-0-0140-0140">チョコレイト・フィスト</option>
+        <option value="0-1-0-0140-0140">ツインキラー</option>
+        <option value="0-1-0-0140-0140">つるぎのまい</option>
+        <option value="0-1-0-0140-0140">ツールボックス</option>
+        <option value="0-1-0-0140-0140">テンペストブロウ</option>
+        <option value="0-1-0-0140-0140">テンペストブロウ改</option>
+        <option value="0-1-0-0140-0140">デスサンクション</option>
+        <option value="0-1-0-0140-0140">デスファング</option>
+        <option value="0-1-0-0140-0140">デスファング改</option>
+        <option value="0-1-0-0140-0140">デッド・セメタリー</option>
+        <option value="0-1-0-0140-0140"></option>
+    </select>
+    <br>&emsp;<a3>選択すると，自明な項目が自動入力されます．(五十音順)</a3><br><br>
+    -->
+
+    <table border="2"  class="basic_tables">
+    <tr><td>
+    <label for="skill_base">スキルの倍率</label>
+    </td>
+    <td class="td_dot">
+    &nbsp;<input  id="skill_base" type="number" maxlength="6" >&nbsp;%<br>
+    </td>
+    </tr>
+    <tr><td>
+    <label for="atk_type">攻撃タイプ</label>
+    </td>
+    <td class="td_dot">
+    <select id="atk_type" size="1" class="long"
+    onclick="connectform_clear('skill_base_multi',parseInt(this.value)%2,1);">
+        <option value="0">単体＆単発</option>
+        <option value="1">単体＆多段</option>
+        <option value="2">全体＆単発</option>
+        <option value="3">全体＆多段</option>
+        <option value="4">ランダム＆単発</option>
+        <option value="5">ランダム＆多段</option>
+    </select>
+    </td>
+    </tr>
+    <tr><td>
+    <label for="skill_base_multi">スキルの初撃倍率<a3>(多段の場合のみ)</a3></label>
+    </td>
+    <td class="td_dot">
+    &nbsp;<input  id="skill_base_multi" type="number" maxlength="6"  disabled>&nbsp;%<br>
+    </td></tr>
+    <tr><td colspan="2">
+    <input type="checkbox" id="No_att" onclick="
+        connectform_null('att',false,this.checked);
+        connectform_null('attzt',false,this.checked);
+        connectform_null('allatt',false,this.checked);
+        connectform_null('force_charge',false,this.checked);
+        connectform_null('force_blast',false,this.checked);
+        connectform_null('force_burst',false,this.checked);
+        connectform_null('att_burst',false,this.checked);
+        connectform_null('att_force',false,this.checked);
+        connectform_null('att_force_power',false,this.checked);
+        connectform_null('unique3_1',false,this.checked);
+    ">
+    <label for="fusion">無属性<a3>※onにすると属性カテゴリーが無効化されます．</a3></label>
+    </td></tr>
+    </table>
+
+    </p>
+
+    <p>
+    <table border="2"  class="basic_tables">
+    <tr><td>
+    <label for="zort">スキルの斬撃&nbsp;or&nbsp;体技ダメージ</label>
+    </td><td class="td_dot">
+    <input  id="zort" type="number" maxlength="6" >&nbsp;%<br>
+    </td></tr>
+    <tr><td>
+    <label for="zt">スキルの斬撃・体技ダメージ</label>
+    </td><td class="td_dot">
+    <input  id="zt" type="number" maxlength="6" >&nbsp;%<br>
+    </td></tr>
+    <tr><td>
+    <label for="ztb">スキルの斬撃・体技・ブレスダメージ</label>
+    </td><td class="td_dot">
+    <input  id="ztb" type="number" maxlength="6" >&nbsp;%
+    </td></tr>
+    </table>
+    </p>
+
+    <p>
+    <table border="2"  class="basic_tables">
+    <tr><td>
+    <label for="att">○○属性ダメージ</label>
+    </td><td class="td_dot">
+    <input  id="att" type="number" maxlength="6" >&nbsp;%<br>
+    </td></tr>
+    <tr><td>
+    <label for="attzt">○○属性斬撃・体技ダメージ</label>
+    </td><td class="td_dot">
+    <input  id="attzt" type="number" maxlength="6" >&nbsp;%<br>
+    </td></tr>
+    <tr><td>
+    <label for="allatt">全属性ダメージ</label>
+    </td><td class="td_dot">
+    <input  id="allatt" type="number" maxlength="6" >&nbsp;%
+    </td></tr>
+    </table>
+    </p>
+    
+    <p>
+    <table border="2"  class="basic_tables">
+    <tr><td>
+    <label for="sys">系統へのダメージ</label>
+    </td><td class="td_dot">
+    <input  id="sys" type="number" maxlength="6" >&nbsp;%<br>
+    </td></tr>
+    </table>
+    </p>
+
+    <p>
+    <table border="2"  class="basic_tables">
+    <tr><td>
+    <label for="nam">(敵名称)へのダメージ</label>
+    </td><td class="td_dot">
+    <input  id="nam" type="number" maxlength="6" >&nbsp;%<br>
+    </td></tr>
+    <tr><td>
+    <label for="skl">(スキル名称)のダメージ</label>
+    </td><td class="td_dot">
+    <input  id="skl" type="number" maxlength="6" >&nbsp;%
+    </td></tr>
+    </table>
+    </p>
+
+    <p>
+    <table border="2"  class="basic_tables">
+    <tr><td>
+    <label for="zt_t">敵の斬撃&nbsp;or&nbsp;体技耐性<a3>(等倍は100%)</a3></label>
+    </td><td class="td_dot">
+    <input  id="zt_t" type="number" maxlength="6" >&nbsp;%<br>
+    </td></tr>
+    <tr><td>
+    <label for="att_t">敵の属性耐性<a3>(等倍は100%)</a3></label>
+    </td><td class="td_dot">
+    <input  id="att_t" type="number" maxlength="6" >&nbsp;%
+    </td></tr>
+    </table>
+    </p>
+
+    <p>
+    <a1>&nbsp;その他の補正&nbsp;</a1><br>
+    &emsp;<label for="job">職業別入力ガイド</label>
+    &nbsp;<select class="long" id="job" size="1" 
+    onclick="
+    connectform('dragonblood',7,this.value);
+    connectform('barbaroo',8,this.value);
+    connectform('chivalry',1,this.value);
+    connectform('battleogre',1,this.value);
+    connectform('hunger',7,this.value);
+    connectform('cspell',2,this.value);
+    if(composite.value != 1){
+        if(fusion.checked == true){
+            connectform_null('magatk',5,this.value);
+        }
+    }
+    connectform('fusion',5,this.value);
+    connectform('force_charge',5,this.value);
+    connectform('force_blast',5,this.value);
+    connectform('force_burst',2,this.value);
+    if(godrage.checked == true){
+        connectform('godrage_h_button',1,this.value);
+        connectform('godrage_h1',1,this.value);
+        connectform('godrage_h2',1,this.value);
+        connectform('godrage_h3',1,this.value);
+        connectform('godrage_h4',1,this.value);
+        connectform_null('godhand_lv',1,this.value);
+    }
+    connectform('godrage',1,this.value);
+    if(dragonic_burst.checked == true){
+        connectform_null('dragonic_burst_ally1_max',7,this.value);
+        connectform_null('dragonic_burst_ally1_rest',7,this.value);
+        connectform_null('dragonic_burst_ally2_max',7,this.value);
+        connectform_null('dragonic_burst_ally2_rest',7,this.value);
+        connectform_null('dragonic_burst_ally3_max',7,this.value);
+        connectform_null('dragonic_burst_ally3_rest',7,this.value);
+    }
+    connectform('dragonic_burst',7,this.value);
+    connectform('eradicate_mind',9,this.value);
+    connectform('eradicate',9,this.value);
+    connectform('super_critical',9,this.value);
+    if(double_weapon.checked == true){
+        connectform('double_weapon_down',9,this.value);
+    }
+    connectform('double_weapon',9,this.value);
+    connectform('karma',5,this.value);
+    connectform('karma_pinnacle',5,this.value);
+    connectform_null('coercion_speff',4,this.value);
+    if(ocean_romance.checked == true){
+        connectform('coercion',4,this.value);
+    }
+    connectform('ocean_romance',4,this.value);
+    ">
+            <option value="0">OFF</option>
+            <option value="1">ゴッドハンド</option>
+            <option value="2">大魔道士</option>
+            <option value="3">大神官</option>
+            <option value="4">ニンジャ</option>
+            <option value="5">魔剣士</option>
+            <option value="6">守り人</option>
+            <option value="7">ドラゴン</option>
+            <option value="8">天地雷鳴士</option>
+            <option value="9">魔人</option>
+            <option value="10">時渡りの剣士</option> 
+        </select><br>
+        &emsp;<a3>onにすると，選択した職業以外の職業固有項目への誤入力を防げます．</a3>
+    </p></main_contents>
+
+    <p>
+        <details class="big">
+        <summary><a2>攻守変化類</a2></summary>
+        <table border="1"  class="sub_tables">
+        <tr><td colspan="2">
+        <label for="lv_ud_m">味方のレベル変動<a3>(-10&nbsp;~&nbsp;+20)</a3></label>
+        </td><td class="td_dot" colspan="2">
+        <button onclick="
+            pm_input('lv_ud_m',-5,20,-10);
+            " id="lv_m_m10_button">
+            -5
+        </button>
+        <button onclick="
+            pm_input('lv_ud_m',-1,20,-10);
+            " id="lv_m_m1_button">
+            -1
+        </button>
+        <input  id="lv_ud_m" type="number" maxlength="3">
+        <button onclick="
+            pm_input('lv_ud_m',1,20,-10);
+            " id="lv_m_p1_button">
+            +1
+        </button>
+        <button onclick="
+            pm_input('lv_ud_m',5,20,-10);
+            " id="lv_m_p10_button">
+            +5
+        </button>
+        </td></tr>
+        <tr><td colspan="2">
+        <label for="lv_ud_y">敵のレベル変動<a3>(-10&nbsp;~&nbsp;0)</a3></label>
+        </td><td class="td_dot" colspan="2">
+        <button onclick="
+            pm_input('lv_ud_y',-5,0,-10);
+            " id="lv_y_m10_button">
+            -5
+        </button>
+        <button onclick="
+            pm_input('lv_ud_y',-1,0,-10);
+            " id="lv_y_m1_button">
+            -1
+        </button>
+        <input  id="lv_ud_y" type="number" maxlength="3">
+        <button onclick="
+            pm_input('lv_ud_y',1,0,-10);
+            " id="lv_y_p1_button">
+            +1
+        </button>
+        <button onclick="
+            pm_input('lv_ud_y',5,0,-10);
+            " id="lv_y_p10_button">
+            +5
+        </button>
+        </td></tr>
+        <tr><td colspan="2">
+        <input type="checkbox" id="fusion" 
+        onclick="
+            if(composite.value != 1){
+                connectform_null('magatk',false,!this.checked);
+            }
+        "><label for="fusion">剣魔合一</label>
+        </td><td colspan="2">
+        <input type="checkbox" id="direct_hit"><label for="direct_hit">直撃</label><br>
+        </td></tr>
+        <tr><td colspan="2">
+        <input type="checkbox" id="deepsleep"><label for="deepsleep">熟睡</label><br>
+        </td></tr>
+        <tr><td class="td_half" colspan="2">
+        <label for="composite">魔力複合(攻魔&nbsp;or&nbsp;回魔)</label>
+        </td><td class="td_dot" colspan="2">
+        <select id="composite" size="1" onclick="
+        if(fusion.checked == false){
+            connectform_null('magatk',1,this.value);
+        }
+        connectform_null('magrec',2,this.value);
+        ">
+            <option value="-1">なし</option>
+            <option value="1">攻魔複合</option>
+            <option value="2">攻回複合</option>
+        </select>
+        </td></tr>
+        <tr><td>
+        <label for="magatk">攻撃魔力</label>
+        </td><td class="td_dot">
+        <input  id="magatk" type="number" maxlength="6"  disabled>
+        </td><td>
+        <label for="magrec">回復魔力</label>
+        </td><td class="td_dot">
+        <input  id="magrec" type="number" maxlength="6"  disabled><br>
+        </td></tr>
+        <tr class="tr_top_dot"><td colspan="4">
+        <a3>※↑剣魔合一または複合onの場合のみ入力した数値が反映されます．</a3><br>
+        </td></tr>
+        <tr><td colspan="2">
+        <label for="dragonblood">竜の血</label>
+        </td><td class="td_dot" colspan="2">
+        <select id="dragonblood" size="1">
+            <option value="0">なし</option>
+            <option value="0">1段階</option>
+            <option value="1">2段階</option>
+            <option value="2">3段階</option>
+            <option value="4">4段階</option>
+            <option value="6">5段階</option>
+        </select>
+        </td></tr>
+        </table>
+        <details style = "padding-left: 1rem;" class="child">
+            <summary class="child">その他ユニーク効果</summary>
+            <table border="1" class="subsub_tables">
+            <tr><td>
+            <label for="unique1_1">竜のこころ
+                <img src="icons/unique1_1_image.webp" class="icon">
+            </label>
+            </td><td class="td_dot">
+            <select id="unique1_1" size="1" >
+            <option value="0">なし</option>
+            <option value="3">発動:1個</option>
+            <option value="5">発動:2個</option>
+            <option value="7">発動:3個</option>
+            <option value="10">発動:4個</option>
+            </select>
+            </td></tr>
+            <tr><td>
+            <label for="unique1_2">我が僕達よ力を貸せ
+                <img src="icons/unique1_2_image.webp" class="icon">
+            </label>
+            </td><td class="td_dot">
+            <select id="unique1_2" size="1" >
+            <option value="0">なし</option>
+            <option value="3">発動:1個</option>
+            <option value="5">発動:2個</option>
+            <option value="7">発動:3個</option>
+            <option value="10">発動:4個</option>
+            </select>
+            </td></tr>
+            </table>
+        </details>
+    </details><span class="min"><br></span>
+
+    <details class="big">
+        <summary><a2>斬撃体技倍率変化類</a2></summary>
+        <table border="1"  class="sub_tables">
+        <tr><td>
+        <label for="zt_ud">斬撃体技ダメージ変化</label>
+        </td><td class="td_dot">
+        <select id="zt_ud" size="1">
+            <option value="0">なし</option>
+            <option value="1">1段階up</option>
+            <option value="2">2段階up</option>
+            <option value="3">3段階up</option>
+            <option value="-1">1段階down</option>
+            <option value="-2">2段階down</option>
+            <option value="-3">3段階down</option>
+        </select>
+        </td></tr>
+        <tr><td>
+        <label for="ztd_j">スキルダメージ変化</label>
+        </td><td class="td_dot">
+        <select id="ztj_u" size="1">
+            <option value="0">なし</option>
+            <option value="1">1段階up</option>
+            <option value="2">2段階up</option>
+            <option value="-1">1段階down</option>
+            <option value="-2">2段階down</option>
+        </select>
+        </td></tr>
+        <tr><td>
+        <label for="chivalry">騎士道精神</label>
+        </td><td class="td_dot">
+        <select id="chivalry" size="1">
+            <option value="0">なし</option>
+            <option value="40">1段階</option>
+            <option value="50">2段階</option>
+            <option value="60">3段階</option>
+            <option value="70">4段階</option>
+        </select>
+        </td></tr>
+        <tr><td>
+        <label for="barbaroo">バルバルーの加護</label>
+        </td><td class="td_dot">
+        <select id="barbaroo" size="1" >
+            <option value="0">なし</option>
+            <option value="130">発動:敵1体</option>
+            <option value="100">発動:敵2体</option>
+            <option value="85">発動:敵3体</option>
+            <option value="70">発動:敵4体</option>
+        </select>
+        </td></tr>
+        <tr><td class="td_half">
+        <input type="checkbox" id="cr_abs"><label for="cr_abs">会心必中のかまえ</label>
+        </td><td class="td_half">
+        <input type="checkbox" id="support"><label for="support">おうえん</label>
+        </td></tr>
+        <tr><td class="td_half">
+        <input type="checkbox" id="battleogre"><label for="battleogre">戦鬼解放</label>
+        </td><td class="td_half">
+        <input type="checkbox" id="hunger"><label for="hunger">飢餓</label>
+        </td></tr>
+        <tr><td class="td_half">
+        <input type="checkbox" id="cspell"><label for="cspell">連続呪文</label>
+        </td></tr>
+        </table>
+
+        <details  style = "padding-left: 1rem;" class="child">
+            <summary class="child">ゴッドレイジ</summary>
+            <table border="1" class="subsub_tables">
+            <tr><td colspan="4">
+            <input type="checkbox" id="godrage" onclick="
+            connectform('godrage_h_button',false,!this.checked);
+            connectform('godrage_h1',false,!this.checked);
+            connectform('godrage_h2',false,!this.checked);
+            connectform('godrage_h3',false,!this.checked);
+            connectform('godrage_h4',false,!this.checked);
+            connectform_null('godhand_lv',false,!this.checked);
+            "><label for="godrage">発動</label><br>
+            </td></tr>
+            <tr><td colspan="4">
+            心道(威力UPの有無)&emsp;<button onclick="
+            on_flag('godrage_h1');
+            on_flag('godrage_h2');
+            on_flag('godrage_h3');
+            on_flag('godrage_h4');
+            " id="godrage_h_button" disabled>
+                全て&nbsp;ON
+            </button>
+            </td></tr>
+            <tr class="tr_top_dot"><td class="td_quarter">
+                <input type="checkbox" id="godrage_h1" disabled>
+                <label for="godrage_h1">武道1</label>
+                </td><td class="td_quarter">
+                <input type="checkbox" id="godrage_h2" disabled>
+                <label for="godrage_h2">武道3</label>
+                </td><td class="td_quarter">
+                <input type="checkbox" id="godrage_h3" disabled>
+                <label for="godrage_h3">武道5</label>
+                </td><td class="td_quarter">
+                <input type="checkbox" id="godrage_h4" disabled>
+                <label for="godrage_h4">武道6</label>
+                </td></tr>
+            <tr><td colspan="3">
+            <label for="godhand_lv">レベル<a3>※発動の場合のみ数値が反映されます．</a3></label>
+            </td><td class="td_dot" colspan="1">
+            <input  id="godhand_lv" disabled type="number" maxlength="6" >
+            </td></tr>
+            </table>
+        </details>
+
+        <details  style = "padding-left: 1rem;" class="child">
+            <summary class="child">ドラゴニックバースト</summary>
+            <table border="1" class="subsub_tables">
+            <tr><td colspan="2">
+            <input type="checkbox" id="dragonic_burst" onclick="
+            connectform_null('dragonic_burst_ally1_max',false,!this.checked);
+            connectform_null('dragonic_burst_ally1_rest',false,!this.checked);
+            connectform_null('dragonic_burst_ally2_max',false,!this.checked);
+            connectform_null('dragonic_burst_ally2_rest',false,!this.checked);
+            connectform_null('dragonic_burst_ally3_max',false,!this.checked);
+            connectform_null('dragonic_burst_ally3_rest',false,!this.checked);
+            "><label for="dragonic_burst">発動</label>
+            </td></tr>
+            <tr><td colspan="2">
+            使用者以外の味方3人のHP状況<br><a3>※発動の場合のみ数値が反映されます．</a3>
+            </td></tr>
+            <tr class="tr_top_dot"><td>
+            1人目:<label for="dragonic_burst_ally1_rest">残りHP</label>
+            /<label for="dragonic_burst_ally1_max">最大HP</label>
+            </td><td class="td_dot">
+            <input  id="dragonic_burst_ally1_rest" disabled type="number" maxlength="6" > /
+            <input  id="dragonic_burst_ally1_max" disabled type="number" maxlength="6" ><br>
+            </td></tr>
+            <tr class="tr_top_dot"><td>
+            2人目:<label for="dragonic_burst_ally2_rest">残りHP</label>
+            /<label for="dragonic_burst_ally2_max">最大HP</label>
+            </td><td class="td_dot">
+            <input  id="dragonic_burst_ally2_rest" disabled type="number" maxlength="6" > /
+            <input  id="dragonic_burst_ally2_max" disabled type="number" maxlength="6" ><br>
+            </td></tr>
+            <tr class="tr_top_dot"><td>
+            3人目:<label for="dragonic_burst_ally3_rest">残りHP</label>
+            /<label for="dragonic_burst_ally3_max">最大HP</label>
+            </td><td class="td_dot">
+            <input  id="dragonic_burst_ally3_rest" disabled type="number" maxlength="6" > /
+            <input  id="dragonic_burst_ally3_max" disabled type="number" maxlength="6" ><br>
+            </td></tr>
+            </table>
+        </details>  
+
+        <details style = "padding-left: 1rem;" class="child">
+            <summary class="child">その他ユニーク効果</summary>
+            <table border="1" class="subsub_tables">
+            <tr><td colspan="3">
+            <input type="checkbox" id="unique2_1">
+            <label for="unique2_1">禁忌の秘法
+                <img src="icons/unique2_1_image.webp" class="icon">
+            </label>
+            </td></tr>
+            <tr><td>
+            <input type="checkbox" id="unique2_2"
+            onclick="connectform_null('unique2_2_m',false,!this.checked);">
+            <label for="unique2_2">血のたぎり
+                <img src="icons/unique2_2_image.webp" class="icon">
+            </label>
+            </td><td>
+            <label for="unique2_2_m">自身の最大HP</label>
+            </td><td class="td_dot">
+            <input  id="unique2_2_m" type="number" maxlength="6"  disabled>
+            </td></tr>
+            <tr class="tr_top_dot"><td colspan="3">
+            <a3>※項目が有効な場合のみ数値が反映されます．</a3>
+            </td></tr>
+            <tr><td colspan="2">
+            <input type="checkbox" id="unique2_3"
+            onclick="connectform_null('unique2_3_m',false,!this.checked);">
+            <label for="unique2_3">女神の奇跡・余剰回復<a3>(1&nbsp;~&nbsp;50%)</a3>
+                <img src="icons/unique2_3_image.webp" class="icon">
+            </label>
+            </td><td class="td_dot">
+            <input  id="unique2_3_m" type="number" maxlength="6" disabled>&nbsp;%
+            </td></tr>
+            <tr><td colspan="2">
+            <input type="checkbox" id="unique2_4"
+            onclick="connectform_null('unique2_4_m',false,!this.checked);">
+            <label for="unique2_4">入魂<a3>(1&nbsp;~&nbsp;40%，超入魂なら40%)</a3>
+                <img src="icons/unique2_4_image.png" class="icon">
+            </label>
+            </td><td class="td_dot">
+            <input  id="unique2_4_m" type="number" maxlength="6" disabled>&nbsp;%
+            </td></tr>
+            <tr><td>
+            <input type="checkbox" id="unique2_5"
+            onclick="connectform_null('unique2_5_m',false,!this.checked);">
+            <label for="unique2_2">ﾊﾞｰﾃｨｶﾙﾊﾟﾜｰ
+                <img src="icons/unique2_5_image.webp" class="icon">
+            </label>
+            </td><td>
+            <label for="unique2_5_m">自身の最大HP</label>
+            </td><td class="td_dot">
+            <input  id="unique2_5_m" type="number" maxlength="6"  disabled>
+            </td></tr>
+            </table>
+        </details>
+    </details><span class="min"><br></span>
+
+    <details class="big">
+        <summary><a2>属性倍率変化類</a2></summary>
+        <table border="1"  class="sub_tables">
+        <tr><td class="td_half">
+        <label for="force_charge">フォースチャージ</label>
+        </td><td class="td_dot">
+        <select id="force_charge" size="1" >
+            <option value="0">なし</option>
+            <option value="1">1段階</option>
+            <option value="2">2段階</option>
+            <option value="3">3段階</option>
+            <option value="4">4段階</option>
+            <option value="5">5段階</option>
+            <option value="6">6段階</option>
+        </select>
+        </td></tr>
+        <tr><td>
+        <input type="checkbox" id="force_blast">
+        <label for="force_blast">フォースブラスト</label>
+        </td><td>
+        <input type="checkbox" id="force_burst">
+        <label for="force_burst">フォースバースト</label><br>
+        </td></tr>
+        <tr><td>
+        <input type="checkbox" id="att_burst">
+        <label for="att_burst">属性バースト</label>
+        </td><td>
+        <input type="checkbox" id="att_force" 
+        onclick="connectform('att_force_power',false,!this.checked);">
+        <label for="att_force">属性フォース<a3>(元々が無属性)</a3></label><br>
+        </td></tr>
+        <tr><td colspan="2">
+        <input type="checkbox" id="att_force_power" disabled>
+        <label for="att_force_power">フォース強化<a3>(属性フォース有効時)</a3></label>
+        </td></tr>
+        </table>
+
+        <details style = "padding-left: 1rem;" class="child">
+            <summary class="child">その他ユニーク効果</summary>
+            <table border="1" class="subsub_tables">
+            <tr><td>
+            <input type="checkbox" id="unique3_1">
+            <label for="unique3_1">闘いの遺伝子
+                <img src="icons/unique3_1_image.webp" class="icon">
+            </label>
+            </td></tr>
+            </table>
+        </details>
+    </details><span class="min"><br></span>
+
+    <details class="big">
+        <summary><a2>系統倍率変化類</a2></summary>
+        <table border="1"  class="sub_tables">
+        <tr><td>
+        <label for="eradicate_mind">根絶やしマインド</label>
+        </td><td class="td_dot">
+        <select class="long" id="eradicate_mind" size="1">
+            <option value="0">なし</option>
+            <option value="60">+60% (心道0段階)</option>
+            <option value="120">+120% (心道1段階)</option>
+            <option value="180">+180% (心道2段階)</option>
+        </select>
+        </td></tr>
+        <tr><td colspan="2">
+        <input type="checkbox" id="eradicate">
+        <label for="eradicate">根絶やし</label>
+        </td></tr>
+        </table>
+        <details style = "padding-left: 1rem;" class="child">
+            <summary class="child">その他ユニーク効果</summary>
+            <table border="1" class="subsub_tables">
+            <tr><td>
+            <input type="checkbox" id="unique4_1">
+            <label for="unique4_1">勇者の血筋
+                <img src="icons/unique4_1_image.webp" class="icon">
+            </label>
+            </td></tr>
+            <tr><td>
+            <input type="checkbox" id="unique4_2" onclick ="
+            connectform('unique4_4',false,this.checked);
+            connectform('unique4_5',false,this.checked);
+            connectform('unique4_6',false,this.checked);
+            connectform('unique4_7',false,this.checked);">
+            <label for="unique4_2">ゴスロリ僧侶の祈り
+                <img src="icons/unique4_2_image.webp" class="icon">
+            </label>
+            </td></tr>
+            <tr><td>
+            <input type="checkbox" id="unique4_3">
+            <label for="unique4_3">勇者の覚悟
+                <img src="icons/unique4_3_image.webp" class="icon">
+            </label>
+            </td></tr>
+            <tr><td>
+            <input type="checkbox" id="unique4_4" onclick ="
+            connectform('unique4_2',false,this.checked);
+            connectform('unique4_5',false,this.checked);
+            connectform('unique4_6',false,this.checked);
+            connectform('unique4_7',false,this.checked);">
+            <label for="unique4_4">義侠の獣
+                <img src="icons/unique4_4_image.webp" class="icon">
+            </label>
+            </td></tr>
+            <tr><td>
+            <input type="checkbox" id="unique4_5" onclick ="
+            connectform('unique4_2',false,this.checked);
+            connectform('unique4_4',false,this.checked);
+            connectform('unique4_6',false,this.checked);
+            connectform('unique4_7',false,this.checked);">
+            <label for="unique4_5">渚の夢占い
+                <img src="icons/unique4_5_image.webp" class="icon">
+            </label>
+            </td></tr>
+            <tr><td>
+            <input type="checkbox" id="unique4_6" onclick ="
+            connectform('unique4_2',false,this.checked);
+            connectform('unique4_4',false,this.checked);
+            connectform('unique4_5',false,this.checked);
+            connectform('unique4_7',false,this.checked);">
+            <label for="unique4_6">ウォールブレイカー
+                <img src="icons/unique4_6_image.webp" class="icon">
+            </label>
+            </td></tr>
+            <tr><td>
+            <input type="checkbox" id="unique4_7" onclick ="
+            connectform('unique4_2',false,this.checked);
+            connectform('unique4_4',false,this.checked);
+            connectform('unique4_5',false,this.checked);
+            connectform('unique4_6',false,this.checked);">
+            <label for="unique4_7">叡智なる弟子
+                <img src="icons/unique4_7_image.webp" class="icon">
+            </label>
+            </td></tr>
+            <tr><td>
+            <input type="checkbox" id="unique4_8">
+            <label for="unique4_8">やんちゃ姫の力
+                <img src="icons/unique4_8_image.webp" class="icon">
+            </label>
+            </td></tr>
+            </table>
+        </details>
+    </details><span class="min"><br></span>
+
+    <details class="big">
+        <summary><a2>敵の耐性変化類</a2></summary>
+        <table border="1"  class="sub_tables">
+        <tr><td>
+        <label for="zt_t_ud">斬撃体技耐性変化
+            <img src="icons/zt_t_ud_image.webp" class="icon">
+        </label>
+        </td><td class="td_dot">
+        <select id="zt_t_ud" size="1">
+            <option value="0">なし</option>
+            <option value="-20">1段階up</option>
+            <option value="-40">2段階up</option>
+            <option value="-60">3段階up</option>
+            <option value="35">1段階down</option>
+            <option value="70">2段階down</option>
+            <option value="105">3段階down</option>
+        </select>
+        </td></tr>
+        <tr><td>
+        <label for="zt_tor_ud">斬撃&nbsp;or&nbsp;体技耐性変化
+            <img src="icons/zt_tor_ud_image.webp" class="icon">
+        </label>
+        </td><td class="td_dot">
+        <select id="zt_tor_ud" size="1">
+            <option value="0">なし</option>
+            <option value="-20">1段階up</option>
+            <option value="-40">2段階up</option>
+            <option value="20">1段階down</option>
+            <option value="40">2段階down</option>
+        </select>
+        </td></tr>
+        <tr><td>
+        <label for="weakness">衰弱</label>
+        </td><td class="td_dot">
+        <select id="weakness" size="1">
+            <option value="0">なし</option>
+            <option value="10">1段階</option>
+            <option value="15">2段階</option>
+            <option value="20">3段階</option>
+        </select>
+        </td></tr>
+        <tr><td>
+        <label for="lostspirit">戦意喪失</label> 
+        </td><td class="td_dot">
+        <select id="lostspirit" size="1">
+            <option value="0">なし</option>
+            <option value="5">1段階</option>
+            <option value="10">2段階</option>
+            <option value="25">3段階</option>
+            <option value="30">4段階</option>
+            <option value="40">5段階</option>
+        </select>
+        </td></tr>
+        <tr><td>
+        <label for="frozen">凍結</label>
+        </td><td class="td_dot">
+        <select id="frozen" size="1">
+            <option value="0">なし</option>
+            <option value="10">1段階</option>
+            <option value="15">2段階</option>
+        </select>
+        </td></tr>
+        <tr><td>
+        <label for="att_t_ud">属性耐性変化</label>
+        </td><td class="td_dot">
+        <select id="att_t_ud" size="1">
+            <option value="0">なし</option>
+            <option value="-20">1段階up</option>
+            <option value="-40">2段階up</option>
+            <option value="30">1段階down</option>
+            <option value="60">2段階down</option>
+        </select> 
+        </td></tr>
+        <tr><td>
+        <label for="allatt_t_ud">全属性耐性変化</label>
+        </td><td class="td_dot">
+        <select id="allatt_t_ud" size="1">
+            <option value="0">なし</option>
+            <option value="-20">1段階up</option>
+            <option value="-40">2段階up</option>
+            <option value="20">1段階down</option>
+            <option value="40">2段階down</option>
+        </select>
+        </td></tr>
+        <tr><td colspan="2">
+        <input type="checkbox" id="intoxication">
+        <label for="intoxication">陶酔</label>
+        </td></tr>
+        </table>
+
+        <details style = "padding-left: 1rem;" class="child">
+            <summary class="child">その他ユニーク効果</summary>
+            <table border="1" class="subsub_tables">
+            <tr><td>
+            <label for="unique5_1">斬撃体技耐性強化
+                <img src="icons/unique5_1_image.webp" class="icon">
+            </label>
+            </td><td class="td_dot">
+            <input  id="unique5_1" type="number" maxlength="6" >&nbsp;%<br>
+            </td></tr>
+            <tr><td colspan="2">
+            <input type="checkbox" id="unique5_2">
+            <label for="unique5_2">敵の属性フォース<a3>※属性が一致する場合のみ</a3></label>
+            </td></tr>
+            </table>
+        </details>
+    </details><span class="min"><br></span>
+
+    <details class="big">
+        <summary><a2>会心類</a2></summary>
+            <table border="1"  class="sub_tables">
+            <tr><td colspan="2">
+            <label for="critical">会心</label>
+            </td><td class="td_dot">
+            <select id="critical" size="1">
+                <option value="0">なし</option>
+                <option value="1">会心</option>
+                <option value="2">超会心</option>
+            </select>
+            </td></tr>
+            <tr><td colspan="2">
+            <label for="super_critical">痛恨化</label>
+            </td><td class="td_dot">
+            <select class="long" id="super_critical" size="1">
+                <option value="0">なし</option>
+                <option value="50">+50% (心道0)</option>
+                <option value="75">+75% (心道1)</option>
+                <option value="100">+100% (心道2)</option>
+            </select>
+            </td></tr>
+            <tr><td colspan="2">
+            <label for="critical_plus">会心ダメージ上昇(閃き)</label>
+            </td><td class="td_dot">
+            <select id="critical_plus" size="1">
+                <option value="0">なし</option>
+                <option value="40">1段階</option>
+                <option value="80">2段階</option>
+            </select>
+            </td></tr>
+            <tr><td colspan="2">
+            <label for="critical_plus_p">会心ダメージUP</label>
+            </td><td class="td_dot">
+            <input  id="critical_plus_p" type="number" maxlength="6" >&nbsp;%<br>
+            </td></tr>
+            <tr><td>
+            <input type="checkbox" id="critical_guard_frag" 
+            onclick="connectform('critical_guard',false,!this.checked);">
+            <label for="critical_guard_frag">会心ガード</label>
+            </td><td>
+            <label for="critical_guard">軽減倍率<a3>(0%で等倍)</a3></label>
+            </td><td class="td_dot">
+            <input  id="critical_guard" type="number" maxlength="6"  disabled>&nbsp;%
+            </td></tr>
+            </table><span class="min"><br></span>        
+        </details><span class="min"><br></span>
+
+    <details class="big">
+        <summary><a2>他の分類</a2></summary>
+        <table border="1"  class="sub_tables">
+        <tr><td>
+        <label for="charge">きあいため類</label>
+        </td><td class="td_dot">
+        <select class="long" id="charge" size="1">
+            <option value="100">なし</option>
+            <option value="150">ちからため</option>
+            <option value="200">きあいため</option>
+            <option value="210">目覚めのきあいため</option>
+            <option value="225">超きあいため</option>
+            <option value="230">勇者のきあいため</option>
+            <option value="250">大魔王のフルパワー</option>
+        </select>
+        </td></tr>
+        </table>
+        <details style = "padding-left: 1rem;" class="child">
+            <summary class="child">二刀流時の補正</summary>
+            <table border="1"  class="subsub_tables">
+            <tr><td colspan="2">
+            <input type="checkbox" id="double_weapon"
+            onclick="connectform('double_weapon_down',false,!this.checked)
+            "><label for="double_weapon">二刀流</label>
+            </td></tr>
+            <tr class="tr_top_dot"><td>
+            <label for="double_weapon_down">二刀流時のダメージDOWN</label>
+            </td><td class="td_dot">
+            <select class="long" id="double_weapon_down" size="1" disabled>
+                <option value="0">なし</option>
+                <option value="-60">-60%</option>
+                <option value="-55">-55%</option>
+                <option value="-50">-50%</option>
+            </select>
+            </td></tr>
+            </table>
+        </details>
+        <details style = "padding-left: 1rem;" class="child">
+            <summary class="child">因果類</summary>
+            <table border="1"  class="subsub_tables">
+            <tr><td>
+            <label for="karma">因果</label>
+            </td><td class="td_dot">
+            <select class="long" id="karma" size="1">
+                <option value="0">なし</option>
+                <option value="20">1段階</option>
+                <option value="40">2段階</option>
+                <option value="60">3段階</option>
+                <option value="80">4段階</option>
+                <option value="100">5段階</option>
+                <option value="120">6段階</option>
+            </select>
+            </td></tr>
+            <tr><td colspan="2">
+            <input type="checkbox" id="karma_pinnacle">
+            <label for="karma_pinnacle">因果の極み</label>
+            </td></tr>
+            </table>
+        </details>
+        <details style = "padding-left: 1rem;" class="child">
+            <summary class="child">状態特効(大海の浪漫&nbsp;含む)</summary>
+            <table border="1"  class="subsub_tables">
+            <tr><td>
+            <label for="coercion_speff">威圧状態の相手へのダメージUP</label>
+            </td><td class="td_dot">
+            <input  id="coercion_speff" type="number" maxlength="6" >&nbsp;%<br>
+            </td></tr>
+            <tr><td>
+            <label for="abnormal_speff">状態異常中の相手へのダメージUP</label>
+            </td><td class="td_dot">
+            <input  id="abnormal_speff" type="number" maxlength="6" >&nbsp;%<br>
+            </td></tr>
+            <tr><td colspan="2">
+            <input type="checkbox" id="ocean_romance"
+            onclick="
+            connectform('coercion',false,!this.checked);
+            connectform('ocean_romance_plus',false,!this.checked);
+            "><label for="ocean_romance">大海の浪漫</label>
+            </td></tr>
+            <tr class="tr_top_dot"><td>
+            <label for="coercion">威圧</label>
+            </td><td class="td_dot">
+            <select class="long" id="coercion" size="1" disabled>
+                <option value="0">なし</option>
+                <option value="50">1段階</option>
+                <option value="100">2段階</option>
+                <option value="200">3段階</option>
+                <option value="300">4段階</option>
+                <option value="400">5段階</option>
+            </select>
+            </td></tr>
+            <tr class="tr_top_dot"><td>
+            <label for="ocean_romance_plus">大海の浪漫のダメージUP</label>
+            </td><td class="td_dot">
+            <input  id="ocean_romance_plus" type="number" maxlength="6" disabled>&nbsp;%<br>
+            </td></tr>
+            </table>
+        </details>
+        <details style = "padding-left: 1rem;" class="child">
+            <summary class="child">テンション</summary>
+            <table border="1"  class="subsub_tables">
+            <tr><td>
+            <label for="tension_m">味方のテンション</label>
+            </td><td class="td_dot">
+            <select class="long" id="tension_m" size="1">
+                <option value="0">なし</option>
+                <option value="10">5</option>
+                <option value="20">20</option>
+                <option value="30">50</option>
+                <option value="50">100</option>
+                <option value="-50">-5</option>
+                <option value="-65">-20</option>
+                <option value="-80">-50</option>
+                <option value="-95">-100</option>
+            </select>
+            </td></tr>
+            <tr><td>
+            <label for="tension_y">敵のテンション</label>
+            </td><td class="td_dot">
+            <select class="long" id="tension_y" size="1">
+                <option value="0">なし</option>
+                <option value="10">5</option>
+                <option value="20">20</option>
+                <option value="30">50</option>
+                <option value="50">100</option>
+                <option value="-10">-5</option>
+                <option value="-20">-20</option>
+                <option value="-30">-50</option>
+                <option value="-50">-100</option>
+            </select>
+            </td></tr>
+            </table>
+        </details>
+        <details style = "padding-left: 1rem;" class="child">
+            <summary class="child">その他ユニーク効果</summary>
+            <table border="1"  class="subsub_tables">
+            <tr><td class="td_half">
+            <label for="evolution">進化</label>
+            </td><td class="td_dot">
+            <select class="long" id="evolution" size="1">
+                <option value="0">なし</option>
+                <option value="10">1段階</option>
+                <option value="20">2段階</option>
+                <option value="30">3段階</option>
+                <option value="40">4段階</option>
+            </select>
+            </td></tr>
+            <tr><td>
+            <input type="checkbox" id="quitting">
+            <label for="quitting">見切り</label>
+            </td><td>
+            <input type="checkbox" id="cover">
+            <label for="cover">かばう</label>
+            </td></tr>
+            <tr><td>
+            <input type="checkbox" id="guard" onclick ="
+            connectform('superguard',false,this.checked);">
+            <label for="guard">ぼうぎょ</label>
+            </td><td>
+            <input type="checkbox" id="superguard" onclick ="
+            connectform('guard',false,this.checked);">
+            <label for="superguard">だいぼうぎょ</label>
+            </td></tr>
+            </table>
+        </details>        
+    </details><span class="min"><br></span>
+    </p>
+
+    <a4>
+    <button id="last_button" class="last" onclick ="
+    null_zero('atk');
+    null_zero('def');
+    null_t100('skill_base');
+    if(skill_base_multi.disabled == false){
+        null_t100('skill_base_multi');
+    }
+    null_zero('zort');
+    null_zero('zt');
+    null_zero('ztb');
+    null_lv('lv_ud_m',20,-10);
+    null_lv('lv_ud_y',0,-10);
+    null_zero('magatk');
+    null_zero('magrec');
+    if(godrage.checked == true){
+        null_one('godhand_lv');
+    }
+    if(dragonic_burst.checked == true){
+        null_one('dragonic_burst_ally1_max');
+        null_zero('dragonic_burst_ally1_rest');
+        null_one('dragonic_burst_ally2_max');
+        null_zero('dragonic_burst_ally2_rest');
+        null_one('dragonic_burst_ally3_max');
+        null_zero('dragonic_burst_ally3_rest');
+    }
+    if(unique2_2.checked == true){
+        null_one('unique2_2_m');
+    }
+    if(unique2_3.checked == true){
+        null_one('unique2_3_m');
+    }
+    if(unique2_4.checked == true){
+        null_one('unique2_4_m');
+    }
+    if(unique2_5.checked == true){
+        null_one('unique2_5_m');
+    }
+    null_zero('att');
+    null_zero('attzt');
+    null_zero('allatt');
+    null_zero('sys');
+    null_zero('nam');
+    null_zero('skl');
+    null_t100('zt_t');
+    null_t100('att_t');
+    null_zero('unique5_1');
+    null_zero('critical_plus_p');
+    null_zero('critical_guard');
+    null_zero('coercion_speff');
+    null_zero('abnormal_speff');
+    null_zero('ocean_romance_plus');
+    zt_last_clicked();
+    hid_swich2();
+    ">計算実行</button><br>
+    <div  id="calculate" class="output_1">ここに計算結果が出力されます</div></a4>
+
+    <!--
+    <details style = "padding-left: 1rem;" >
+        <summary>計算詳細</summary> 
+    </details>
+    -->
+    <br><br>
+
+    <table border="1" class="sub_tables">
+    <tr><td>
+    テスト
+    </td><td class="td_dot">
+    <input  id="testtest" type="number" maxlength="6"  disabled>
+    </td></tr>
+    </table>
+
+    <br><br><div id="ppp" hidden>aaaa</div><br><br>
+
+    
+    
+
+    <script>
+		// JavaScript
+		console.log("JavaScript");
+
+        function zt_last_clicked() {
+            document.getElementById('last_button').disabled = true;
+            setTimeout(() => {document.getElementById('last_button').disabled = false;},1000)
+
+            //パラメータリンク
+            //攻守
+            var atk = parseFloat(document.getElementById('atk').value);
+            var atk_ud = parseFloat(document.getElementById('atk_ud').value);
+            var def = parseFloat(document.getElementById('def').value);
+            var def_ud = parseFloat(document.getElementById('def_ud').value);
+
+            var lv_ud_m = parseFloat(document.getElementById('lv_ud_m').value);
+            var lv_ud_y = parseFloat(document.getElementById('lv_ud_y').value);
+            var dragonblood = parseFloat(document.getElementById('dragonblood').value); //竜の血
+            
+            //敵の進化
+            var evolution = parseFloat(document.getElementById('evolution').value)/100;
+            
+            //ユニーク
+            var unique1_1 = parseFloat(document.getElementById('unique1_1').value);
+            var unique1_2 = parseFloat(document.getElementById('unique1_2').value);
+
+            //レベル変動
+            var lv_m = 1;
+            var lv_y = 1;
+            if(lv_ud_m > 0){
+                lv_m = Math.floor(1.04**lv_ud_m*100)/100;
+            }
+            else if(lv_ud_m < 0){
+                lv_m = Math.ceil(0.96**(lv_ud_m*(-1))*100)/100;
+            }
+            if(lv_ud_y < 0){
+                lv_y = Math.ceil(0.96**(lv_ud_y*(-1))*100)/100;
+            }
+
+            var deepsleep = 1;//熟睡
+            if(document.getElementById('deepsleep').checked == true){
+                deepsleep = 0.5; 
+            }
+            
+
+            var composite = 0; //複合
+            var composite_flag = document.getElementById('composite').value;
+            if(composite_flag == 2){
+                composite = parseFloat(document.getElementById('magrec').value);
+                composite *= (lv_m*100 + unique1_1 + unique1_2)/100;
+            }
+            else if(composite_flag == 1){
+                composite = parseFloat(document.getElementById('magatk').value);
+                composite *= (lv_m*100 + unique1_1 + unique1_2)/100;
+            }
+            composite = Math.floor(composite);
+
+            var fusion = 0; //剣魔
+            if(document.getElementById('fusion').checked){
+                fusion = parseFloat(document.getElementById('magatk').value);
+                fusion *= (lv_m*100 + unique1_1 + unique1_2)/100;
+                fusion = Math.floor(fusion);
+            }
+
+            var direct_hit = 1; //直撃
+            if(document.getElementById('direct_hit').checked){
+                direct_hit = 0;
+            }
+
+            //基礎値
+            var l_atk = Math.floor(atk*(lv_m+0.1*(atk_ud+dragonblood+0.1*(unique1_1+unique1_2))))+composite+fusion;
+            var l_def = Math.floor(def*deepsleep*(lv_y+0.1*def_ud+evolution));
+            
+            if(l_atk*1.75 > l_def || l_atk == 0){
+                var base_flag = 1;
+                var base = Math.floor(l_atk/2 - l_def/4 *direct_hit);
+                var base_min = base - Math.floor(base/16 + 1);
+                var base_max = base + Math.floor(base/16 + 1);
+                if(l_atk < 1){
+                    base_flag = 2;
+                    base_min = 0;
+                    base = 0;
+                    base_max = 1;
+                    if(l_def > 0){
+                        base_flag = 3;
+                    }
+                }
+            }
+            else if(l_atk*1.75 <= l_def && l_def <= l_atk*2 && direct_hit == 1){
+                var base_flag = 2;
+                var base = Math.floor(l_atk/32);
+                var base_min = 0;
+                var base_max = Math.floor(l_atk/16);
+            }
+            else if(l_atk*2 < l_def && direct_hit == 1){
+                var base_flag = 3;
+                var base = 0;
+                var base_min = 0;
+                var base_max = 1;
+            }
+            else if(l_atk*1.75 <= l_def && l_def <= l_atk*2){
+                var base_flag = 2;
+                var base = Math.floor(l_atk/2 - l_def/4 *direct_hit);
+                var base_min = base - Math.floor(base/16 + 1);
+                var base_max = base + Math.floor(base/16 + 1);
+            }
+            else{
+                var base_flag = 3;
+                var base = Math.floor(l_atk/2 - l_def/4 *direct_hit);
+                var base_min = base - Math.floor(base/16 + 1);
+                var base_max = base + Math.floor(base/16 + 1);
+            }
+
+            l_def *= direct_hit;
+
+            //スキル倍率
+            var skill_base = parseFloat(document.getElementById('skill_base').value)/100;
+            var skill_base_first = skill_base;
+            if(parseInt(document.getElementById('atk_type').value)%2 == 1){
+                skill_base_first = parseFloat(document.getElementById('skill_base_multi').value)/100;
+            }
+
+            //補正列挙
+            //テンション
+            var tension_m = parseFloat(document.getElementById('tension_m').value)/100;
+            var tension_y = parseFloat(document.getElementById('tension_y').value)/100;
+
+            //斬体
+            var effect_zt = 100;
+            var zort = parseFloat(document.getElementById("zort").value);
+            var zt = parseFloat(document.getElementById("zt").value);
+            var ztb = parseFloat(document.getElementById("ztb").value);
+            var zt_ud = parseFloat(document.getElementById("zt_ud").value)*20;
+            var ztj_u = parseFloat(document.getElementById("ztj_u").value)*20;
+            var chivalry = parseFloat(document.getElementById("chivalry").value);
+            var barbaroo = parseFloat(document.getElementById("barbaroo").value);
+            var cr_abs = 0;
+            var support = 0;
+            var battleogre = 0;
+            var hunger = 0;
+            var cspell = 0;
+            var godrage = 0;
+            var dragonic_burst = 0;
+            var unique2_1 = 0;
+            var unique2_2 = 0;
+            var unique2_3 = 0;
+            var unique2_4 = 0;
+            var unique2_5 = 0;
+            if(document.getElementById("cr_abs").checked){
+                cr_abs = 50;
+            }
+            if(document.getElementById("support").checked){
+                support = 80;
+            }
+            if(document.getElementById("battleogre").checked){
+                battleogre = 35;
+            }
+            if(document.getElementById("hunger").checked){
+                if(document.getElementById("dragonblood").value < 3){
+                    hunger = 25;
+                }
+                else if(document.getElementById("dragonblood").value < 5){
+                    hunger = 35;
+                }
+                else{
+                    hunger = 50;
+                }
+            }
+            if(document.getElementById("cspell").checked){
+                cspell = 100;
+            }
+            if(document.getElementById("godrage").checked){
+                godrage = 40;
+                if(document.getElementById("godrage_h1").checked){
+                    godrage += 25;
+                }
+                if(document.getElementById("godrage_h2").checked){
+                    godrage += 20;
+                }
+                if(document.getElementById("godrage_h3").checked){
+                    godrage += 15;
+                }
+                if(document.getElementById("godrage_h4").checked){
+                    godrage += 15;
+                }
+                var godhand_lv = Math.floor(parseFloat(document.getElementById("godhand_lv").value) * 2.5);
+                godrage += godhand_lv;
+            }
+            if(document.getElementById("dragonic_burst").checked){
+                dragonic_burst = 50;
+                var ally1_max = parseFloat(document.getElementById("dragonic_burst_ally1_max").value);
+                var ally1_rest = parseFloat(document.getElementById("dragonic_burst_ally1_rest").value);
+                var ally2_max = parseFloat(document.getElementById("dragonic_burst_ally2_max").value);
+                var ally2_rest = parseFloat(document.getElementById("dragonic_burst_ally2_rest").value);
+                var ally3_max = parseFloat(document.getElementById("dragonic_burst_ally3_max").value);
+                var ally3_rest = parseFloat(document.getElementById("dragonic_burst_ally3_rest").value);
+                var ally = 1 - (ally1_rest+ally2_rest+ally3_rest)/(ally1_max+ally2_max+ally3_max);
+                dragonic_burst += Math.floor(ally * 300);
+            }
+            if(document.getElementById("unique2_1").checked){
+                unique2_1 = 25;
+            }
+            if(document.getElementById("unique2_2").checked){
+                var unique2_2_m = parseFloat(document.getElementById("unique2_2_m").value);
+                unique2_2 = Math.floor(unique2_2_m/100);
+            }
+            if(document.getElementById("unique2_3").checked){
+                unique2_3 = parseFloat(document.getElementById("unique2_3_m").value);
+            }
+            if(document.getElementById("unique2_4").checked){
+                unique2_4 = parseFloat(document.getElementById("unique2_4_m").value);
+            }
+            if(document.getElementById("unique2_5").checked){
+                var unique2_5_m = parseFloat(document.getElementById("unique2_5_m").value);
+                unique2_5 = Math.floor(unique2_5_m/50);
+            }
+
+            var zort_before = zort;
+            var zt_before = zt;
+            var ztb_before = ztb;
+            zort *= (1+tension_m);
+            zt *= (1+tension_m);
+            ztb *= (1+tension_m);
+                    
+            effect_zt += Math.floor(zort) + Math.floor(zt) + Math.floor(ztb) 
+            + zt_ud + ztj_u + chivalry + barbaroo + cr_abs + support + battleogre
+            + hunger + cspell + godrage + dragonic_burst + unique2_1 + unique2_2
+            + unique2_3 + unique2_4 + unique2_5;
+            effect_zt /= 100;
+
+            //属性
+            var effect_att = 100;
+            var att = parseFloat(document.getElementById("att").value);
+            var attzt = parseFloat(document.getElementById("attzt").value);
+            var allatt = parseFloat(document.getElementById("allatt").value);
+            var force_charge = parseFloat(document.getElementById("force_charge").value)*30;
+            var force_blast = 0;
+            var force_burst = 0;
+            var att_burst = 0;
+            var unique3_1 = 0;
+            if(document.getElementById("force_blast").checked == true){
+                force_blast = 125;
+            }
+            if(document.getElementById("force_burst").checked == true){
+                force_burst = 50;
+            }
+            if(document.getElementById("att_burst").checked == true){
+                att_burst = 50;
+            }
+
+            var att_before = att;
+            var attzt_before = attzt;
+            var allatt_before = allatt;
+            att *= (1+tension_m);
+            attzt *= (1+tension_m);
+            allatt *= (1+tension_m);
+
+            var att_base = Math.floor(att) + Math.floor(attzt) + Math.floor(allatt);
+            if(document.getElementById("att_force").checked == true){
+                if(document.getElementById("att_force_power").checked == false){
+                    att_base /= 2;
+                }
+            }
+
+            if(document.getElementById("unique3_1").checked == true){
+                unique3_1 = 20;
+            }
+
+            effect_att += Math.floor(att_base) + force_charge + force_blast + force_burst
+            + att_burst + unique3_1;
+            effect_att /= 100;
+
+            //系統
+            var effect_sys = 100;
+            var sys = parseFloat(document.getElementById("sys").value);
+            var eradicate_mind = parseFloat(document.getElementById("eradicate_mind").value);
+            var eradicate = 0;
+            var unique4_1 = 0;
+            var unique4_2 = 0;
+            var unique4_3 = 0;
+            var unique4_4 = 0;
+            var unique4_5 = 0;
+            var unique4_6 = 0;
+            var unique4_7 = 0;
+            var unique4_8 = 0;
+            if(document.getElementById("eradicate").checked == true){
+                eradicate = 300;
+            }
+            if(document.getElementById("unique4_1").checked == true){
+                unique4_1 = 50;
+            }
+            if(document.getElementById("unique4_2").checked == true){
+                unique4_2 = 100;
+            }
+            if(document.getElementById("unique4_3").checked == true){
+                unique4_3 = 40;
+            }
+            if(document.getElementById("unique4_4").checked == true){
+                unique4_4 = 100;
+            }
+            if(document.getElementById("unique4_5").checked == true){
+                unique4_5 = 100;
+            }
+            if(document.getElementById("unique4_6").checked == true){
+                unique4_6 = 120;
+            }
+            if(document.getElementById("unique4_7").checked == true){
+                unique4_7 = 100;
+            }
+            if(document.getElementById("unique4_8").checked == true){
+                unique4_8 = 40;
+            }
+            var sys_before = sys;
+
+            effect_sys += Math.floor(sys * Math.floor(100 + eradicate_mind + eradicate
+            + unique4_1 + unique4_2 + unique4_3 + unique4_4 
+            + unique4_5 + unique4_6 + unique4_7 + unique4_8 + tension_m*100)/100);
+            effect_sys /= 100;
+
+            //耐性
+            var effect_t = 1;
+            var zt_t = parseFloat(document.getElementById("zt_t").value)/100;
+            var att_t = parseFloat(document.getElementById("att_t").value)/100;
+            var zt_t_ud = parseFloat(document.getElementById("zt_t_ud").value)/100;
+            var zt_tor_ud = parseFloat(document.getElementById("zt_tor_ud").value)/100;
+            var weakness = parseFloat(document.getElementById("weakness").value)/100;
+            var lostspirit = parseFloat(document.getElementById("lostspirit").value)/100;
+            var frozen = parseFloat(document.getElementById("frozen").value)/100;
+            var att_t_ud = parseFloat(document.getElementById("att_t_ud").value)/100;
+            var allatt_t_ud = parseFloat(document.getElementById("allatt_t_ud").value)/100;
+            var intoxication = 0;
+            if(document.getElementById("intoxication").checked == true){
+                intoxication = 0.1;
+            }
+            var unique5_1 = parseFloat(document.getElementById("unique5_1").value)/100;
+            var unique5_2 = 0;
+            if(document.getElementById("unique5_2").checked == true){
+                unique5_2 = 0.2;
+            }
+
+            var zt_t_before = zt_t;
+            if(zt_t < 1){
+                zt_t = 1-Math.floor(Math.floor(100-zt_t*100)*Math.floor(100+tension_y*100))/10000;
+                if(zt_t < 0){
+                    zt_t = 0;
+                }
+            }
+            else{
+                zt_t = 1+Math.floor(Math.floor(zt_t*100-100)*Math.floor(100-tension_y*100))/10000;
+            }
+
+            var att_t_before = att_t;
+            if(att_t < 1){
+                att_t = 1-Math.floor(Math.floor(100-att_t*100)*Math.floor(100+tension_y*100))/10000;
+                if(att_t < 0){
+                    att_t = 0;
+                }
+            }
+            else{
+                att_t = 1+Math.floor(Math.floor(att_t*100-100)*Math.floor(100-tension_y*100))/10000;
+            }
+
+            if(document.getElementById("No_att").checked == true){
+                effect_att = 1;
+                att_t = 1;
+                att_t_ud = 0;
+                allatt_t_ud = 0;
+                unique5_2 = 0;
+                evolution = 0;
+                intoxication = 0;
+            }
+
+            effect_t *= Math.floor(zt_t*100)/100 * Math.floor(att_t*100)/100 * (1+zt_t_ud+zt_tor_ud+weakness+lostspirit+frozen-unique5_1)
+            * (1+att_t_ud+allatt_t_ud+intoxication-unique5_2-evolution);
+
+            //会心
+            var critical = 1;
+            var critical_min = 1;
+            var critical_max = 1;
+            var super_critical = parseFloat(document.getElementById("super_critical").value)/100;
+            var critical_plus = parseFloat(document.getElementById("critical_plus").value)/100;
+            var critical_plus_p = parseFloat(document.getElementById("critical_plus_p").value);
+            var critical_guard = parseFloat(document.getElementById("critical_guard").value)/100;
+            if(document.getElementById("critical").value == 1){
+                if(document.getElementById("atk_type").value == 0){
+                    if(base*skill_base*1.6 > l_atk){
+                        critical = 1.6;
+                        critical_min = 1.6;
+                        critical_max = 1.6;
+                    }
+                    else{
+                        skill_base = 1;
+                        base = l_atk;
+                        var base_min = base - Math.floor(base/16 + 1);
+                        if(base_min < 0){
+                            base_min = 0;
+                        }
+                        var base_max = base + Math.floor(base/16 + 1);
+                        critical = 1;
+                        critical_min = 1;
+                        critical_max = 1;
+                    }
+                }
+                else{
+                    if(skill_base < 1){
+                        skill_base = 1;
+                    }
+                    critical = 1.8;
+                    critical_min = 1.6;
+                    critical_max = 2;
+                }
+            }
+            else if(document.getElementById("critical").value == 2){
+                critical = 2.5;
+                critical_min = 2.3;
+                critical_max = 2.7;
+            }
+
+            var before_critical = critical;
+            var before_critical_min = critical_min;
+            var before_critical_max = critical_max;
+            var before_critical_plus_p = critical_plus_p;
+            critical_plus_p = Math.floor(critical_plus_p*(1+tension_m))/100;
+
+            if(document.getElementById("critical").value != 0){
+                critical += super_critical + critical_plus_p;
+                critical_min += super_critical + critical_plus_p;
+                critical_max += super_critical + critical_plus_p;
+
+                critical *= (1+critical_plus);
+                critical_min *= (1+critical_plus);
+                critical_max *= (1+critical_plus);
+            }
+
+            //他の分類
+            var nam = parseFloat(document.getElementById('nam').value);
+            var skl = 1 + parseFloat(document.getElementById('skl').value)/100;
+            var charge = parseFloat(document.getElementById('charge').value)/100;
+            var double_weapon = 1 + parseFloat(document.getElementById('double_weapon_down').value)/100;
+            var karma = parseFloat(document.getElementById('karma').value)/100;
+            var karma_pinnacle = 0;
+            var coercion_speff = parseFloat(document.getElementById('coercion_speff').value)/100;
+            var abnormal_speff = parseFloat(document.getElementById('abnormal_speff').value)/100;
+            var ocean_romance = parseFloat(document.getElementById('coercion').value)/100;
+            var ocean_romance_plus = parseFloat(document.getElementById('ocean_romance_plus').value)/100;
+            var quitting = 1;
+            var coner = 1;
+            var guard = 1;
+            if(document.getElementById('karma_pinnacle').checked == true){
+                karma_pinnacle = 0.3;
+            }
+            if(document.getElementById('quitting').checked == true){
+                quitting = 0.01;
+            }
+            if(document.getElementById('cover').checked == true){
+                cover = 0.6;
+            }
+            if(document.getElementById('guard').checked == true){
+                guard = 0.5;
+            }
+            else if(document.getElementById('superguard').checked == true){
+                guard = 0.1;
+            }
+
+            nam *= (1+tension_m);
+            nam += 100;
+            nam = Math.floor(nam)/100;
+
+            var damage_effect1 = skill_base_first * effect_zt * effect_att * effect_sys * effect_t
+            * (1+karma+karma_pinnacle) * (1+coercion_speff+abnormal_speff+ocean_romance+ocean_romance_plus) * nam;
+            var damage_effect1_multi = (skill_base - skill_base_first) * effect_zt * effect_att * effect_sys * effect_t
+            * (1+karma+karma_pinnacle) * (1+coercion_speff+abnormal_speff+ocean_romance+ocean_romance_plus) * nam;
+
+            var damage_core = Math.floor(base * damage_effect1 * critical);
+            var damage_core_min = Math.floor(base_min * damage_effect1 * critical_min);
+            var damage_core_max = Math.floor(base_max * damage_effect1 * critical_max);
+            var damage_core_multi = Math.floor(base * damage_effect1_multi * critical);
+            var damage_core_multi_min = Math.floor(base_min * damage_effect1_multi * critical_min);
+            var damage_core_multi_max = Math.floor(base_max * damage_effect1_multi * critical_max);
+
+            var damage_effect2 = skl * charge * (1-critical_guard) * guard;
+            var damage_effect2_multi = skl * (1-critical_guard) * guard;
+            
+            var damage = Math.ceil(Math.floor(damage_core * damage_effect2 
+            + damage_core_multi * damage_effect2_multi)*double_weapon)
+            var damage_min = Math.ceil(Math.floor(damage_core_min * damage_effect2
+            + damage_core_multi_min * damage_effect2_multi)*double_weapon);
+            var damage_max = Math.ceil(Math.floor(damage_core_max * damage_effect2
+            + damage_core_multi_max * damage_effect2_multi)*double_weapon);
+
+            //document.getElementById('out_bv').innerHTML = '基礎値：'+out_bv;
+            
+            const taghid_s=['','<!--'];
+            const taghid_e=['','-->'];
+            
+            document.getElementById('calculate').innerHTML =
+            '<p class="output_header">ダメージ計算結果</p><p><a5>最小値&nbsp;～&nbsp;中央値&nbsp;～&nbsp;最大値<br>'
+            + damage_min.toLocaleString() + '&nbsp;～&nbsp;' + damage.toLocaleString() + '&nbsp;～&nbsp;' + damage_max.toLocaleString() + '</a5></p>'
+            //+'<div id="spe_r" class="output_2"><button id="specifics" onclick="zt_spe(); hid_swich2(); hidline_swich('+base_flag+');">計算の詳細を表示▼</button></div>'
+            +'<div id="spe_put" class="output_3"><p class="spe_header">計算詳細</p><br>'
+            
+            //基礎値計算
+            +'<table border="1" class="sub_tables">'
+            +'<tr class="tr_top_solid"><th align="center" colspan="3">'
+            +'①基礎値計算'
+            +'</th></tr>'
+
+            +'<tr class="tr_top_solid"><td align="left" class="padd1">'
+            +'項目&alpha;'
+            +'</td><td align="left">'
+            +'攻撃力'
+            +'</td><td class="td_dot">'
+            +atk.toLocaleString()
+            +'</td></tr>'
+
+            +'<tr><td align="left" id="flag1" class="padd1">'
+            +'項目&beta;'
+            +'</td><td align="left">'
+            +'攻撃力変化'
+            +'</td><td class="td_dot">'
+            +(1+atk_ud/10)
+            +'</td></tr>'
+            +'<tr id="hid_lv_m"><td align="left">'
+            +'味方のレベル変動'
+            +'</td><td class="td_dot">'
+            +Math.round((lv_m-1)*100)/100
+            +'</td></tr>'
+            +'<tr id="hid_dragonblood"><td align="left">'
+            +'竜の血'
+            +'</td><td class="td_dot">'
+            +dragonblood/10
+            +'</td></tr>'
+            +'<tr id="hid_unique1_1"><td align="left">'
+            +'竜のこころ'
+            +'</td><td class="td_dot">'
+            +unique1_1/100
+            +'</td></tr>'
+            +'<tr id="hid_unique1_2"><td align="left">'
+            +'我が僕達よ力を貸せ'
+            +'</td><td class="td_dot">'
+            +unique1_2/100
+            +'</td></tr>'
+
+            +'<tr><td align="left" id="flag2" class="padd1">'
+            +'項目&gamma;'
+            +'</td>'
+            +taghid_s[super_change_check("fusion")]
+            +'<td align="left">'
+            +'剣魔合一'+'<a id=hid_lv_m_1>(レベル変動込み)</a>'
+            +'</td><td class="td_dot">'
+            +fusion.toLocaleString()
+            +'</td></tr>'
+            +taghid_e[super_change_check("fusion")]
+            +taghid_s[super_change_reverse(
+                super_change_check("fusion")
+                +super_change(composite_flag,-1)
+                ,0)]
+            +'<tr>'
+            +taghid_e[super_change_reverse(
+                super_change_check("fusion")
+                +super_change(composite_flag,-1)
+                ,0)]
+            +taghid_s[super_change(composite_flag,-1)]
+            +'<td align="left">'
+            +'魔力複合'+'<a id=hid_lv_m_2>(レベル変動込み)</a>'
+            +'</td><td class="td_dot">'
+            +composite.toLocaleString()
+            +'</td></tr>'
+            +taghid_e[super_change(composite_flag,-1)]
+            +taghid_s[super_change_reverse(
+                super_change_check("fusion")
+                +super_change(composite_flag,-1)
+                ,0)]
+            +'</tr>'
+            +taghid_e[super_change_reverse(
+                super_change_check("fusion")
+                +super_change(composite_flag,-1)
+                ,0)]
+            +taghid_s[super_change(
+                super_change_check("fusion")
+                *super_change(composite_flag,-1)
+                ,0)]
+            +'<td align="left">'
+            +'なし'
+            +'</td><td class="td_dot">'
+            +0
+            +'</td></tr>'
+            +taghid_e[super_change(
+                super_change_check("fusion")
+                *super_change(composite_flag,-1)
+                ,0)]
+            +'</a>'
+
+            +'<tr class="tr_top_double"><td align="left" class="padd1">'
+            +'項目&delta; &nbsp;=&nbsp; &alpha;*&beta;+&gamma;'
+            +'</td><td align="left">'
+            +'計算攻撃力'
+            +'</td><td class="td_dot">'
+            +l_atk.toLocaleString()
+            +'</td></tr>'
+            
+            +'<tr class="tr_top_solid"><td align="left" class="padd1">'
+            +'項目&epsilon;'
+            +'</td><td align="left">'
+            +'守備力'
+            +'</td><td class="td_dot">'
+            +def.toLocaleString()
+            +'</td></tr>'
+
+            +'<tr><td align="left" id="flag3" class="padd1">'
+            +'項目&zeta;'
+            +'</td><td align="left">'
+            +'守備力変化'
+            +'</td><td class="td_dot">'
+            +(1+def_ud/10)
+            +'</td></tr>'
+            +'<tr id="hid_lv_y"><td align="left">'
+            +'敵のレベル変動'
+            +'</td><td class="td_dot">'
+            +Math.round((lv_y-1)*100)/100
+            +'</td></tr>'
+            
+            +'<tr><td align="left" class="padd1">'
+            +'項目&eta;'
+            +'</td><td align="left">'
+            +'<a id="hid_deepsleep">'
+            +'熟睡'
+            +'</a>'
+            +'<a id="dis_deepsleep">'
+            +'なし'
+            +'</a>'
+            +'</td><td class="td_dot">'
+            +'<a id="hid_deepsleep_1">'
+            +0.5
+            +'</a>'
+            +'<a id="dis_deepsleep_1">'
+            +1
+            +'</a>'
+            +'</td></tr>'
+
+            +'<tr><td align="left" class="padd1">'
+            +'項目&theta;'
+            +'</td><td align="left">'
+            +'<a id="hid_direct_hit">'
+            +'直撃'
+            +'</a>'
+            +'<a id="dis_direct_hit">'
+            +'なし'
+            +'</a>'
+            +'</td><td class="td_dot">'
+            +'<a id="hid_direct_hit_1">'
+            +0
+            +'</a>'
+            +'<a id="dis_direct_hit_1">'
+            +1
+            +'</a>'
+            +'</td></tr>'
+
+            +'<tr class="tr_top_double"><td align="left" class="padd1">'
+            +'項目&iota; &nbsp;=&nbsp; &epsilon;*&zeta;*&eta;*&theta;'
+            +'</td><td align="left">'
+            +'計算守備力'
+            +'</td><td class="td_dot">'
+            +l_def.toLocaleString()
+            +'</td></tr>'
+
+            +'<tr class="tr_top_solid"><td align="left" class="padd1">'
+            +'ライン分岐'
+            +'</td>'
+            +'<td align="left" colspan="2">'
+            +taghid_s[super_change_reverse(base_flag,1)]
+            +'必中ライン：攻*1.75&nbsp;>&nbsp;守'
+            +'<br><a3>基礎値&nbsp;=&nbsp;攻/2&nbsp;-&nbsp;守/4&nbsp;+&nbsp;基礎値乱数</a3>'
+            +taghid_e[super_change_reverse(base_flag,1)]
+            +taghid_s[super_change_reverse(base_flag,2)]
+            +'準必中ライン：攻*1.75&nbsp;≦&nbsp;守&nbsp;≦&nbsp;攻*2'
+            +'<br><a3>基礎値&nbsp;=&nbsp;0&nbsp;~&nbsp;攻/16&nbsp;(一様ランダム)</a3>'
+            +taghid_e[super_change_reverse(base_flag,2)]
+            +taghid_s[super_change_reverse(base_flag,3)]
+            +'最小ライン：攻*2&nbsp;<&nbsp;守'
+            +'<br><a3>基礎値&nbsp;=&nbsp;0&nbsp;~&nbsp;1&nbsp;(一様ランダム)</a3>'
+            +taghid_e[super_change_reverse(base_flag,3)]
+            +'</td>'
+            +'</tr>'
+
+            +'<tr><td align="left" class="padd1">'
+            +'項目&kappa;&nbsp;=&nbsp;'
+            +taghid_s[super_change_reverse(base_flag,1)]
+            +'&delta;/2-&iota;/4'
+            +taghid_e[super_change_reverse(base_flag,1)]
+            +taghid_s[super_change_reverse(base_flag,2)]
+            +'&delta;/32'
+            +taghid_e[super_change_reverse(base_flag,2)]
+            +taghid_s[super_change_reverse(base_flag,3)]
+            +0
+            +taghid_e[super_change_reverse(base_flag,3)]
+            +'</td><td align="left">'
+            +'基礎中央値'
+            +'</td><td class="td_dot">'
+            +base.toLocaleString()
+            +'</td></tr>'
+
+            +'<tr><td align="left" class="padd1">'
+            +'項目&lambda;'
+            +taghid_s[super_change_reverse(base_flag,1)]
+            +'<br>&isin;[-&kappa;/16-1,&kappa;/16+1]'
+            +taghid_e[super_change_reverse(base_flag,1)]
+            +'</td><td align="left">'
+            +taghid_s[super_change_reverse(base_flag,1)]
+            +'基礎値乱数'
+            +taghid_e[super_change_reverse(base_flag,1)]
+            +taghid_s[super_change(base_flag,1)]
+            +'なし'
+            +taghid_e[super_change(base_flag,1)]
+            +'</td><td class="td_dot">'
+            +taghid_s[super_change_reverse(base_flag,1)]
+            +(-Math.floor(base/16 + 1))
+            +'&nbsp;~&nbsp;'
+            +Math.floor(base/16 + 1)
+            +taghid_e[super_change_reverse(base_flag,1)]
+            +taghid_s[super_change(base_flag,1)]
+            +0
+            +taghid_e[super_change(base_flag,1)]
+            +'</td></tr>'
+
+            +'<tr class="tr_top_double_bottom_solid"><td align="left" class="padd1">'
+            +'項目&mu; &nbsp;=&nbsp; &kappa;+&lambda;'
+            +'</td><td align="left">'
+            +'基礎値'
+            +'</td><td class="td_dot">'
+            +base_min.toLocaleString()
+            +'&nbsp;~&nbsp;'
+            +base_max.toLocaleString()
+            +'</td></tr>'
+            +'</table>'
+            +'<br>'
+
+            //A補正
+            +'<table border="1" class="sub_tables">'
+            +'<tr class="tr_top_solid"><th align="center" colspan="3">'
+            +'②A補正計算'
+            +'</th></tr>'
+
+            +'<tr class="tr_top_solid"><td align="left" class="padd1">'
+            +'項目&alpha;'
+            +'</td><td align="left">'
+            +'スキルの倍率'
+            +'</td><td class="td_dot">'
+            +(skill_base).toFixed(2)
+            +'</td></tr>'
+
+            +'<tr class="tr_top_solid"><td align="left" id="flag4" class="padd1">'
+            +'項目&beta;'
+            +'</td><td align="left">'
+            +'スキルの斬or体ダメージ'
+            +taghid_s[super_change(tension_m,0)]
+            +'(T'+tension_m_step(tension_m)+')'
+            +taghid_e[super_change(tension_m,0)]
+            +'</td><td class="td_dot">'
+            +(Math.floor(zort)/100).toFixed(2)
+            +'</td></tr>'
+            +'<tr><td align="left">'
+            +'スキルの斬体ダメージ'
+            +taghid_s[super_change(tension_m,0)]
+            +'(T'+tension_m_step(tension_m)+')'
+            +taghid_e[super_change(tension_m,0)]
+            +'</td><td class="td_dot">'
+            +(Math.floor(zt)/100).toFixed(2)
+            +'</td></tr>'
+            +'<tr><td align="left">'
+            +'スキルの斬体ﾌﾞﾚｽダメージ'
+            +taghid_s[super_change(tension_m,0)]
+            +'(T'+tension_m_step(tension_m)+')'
+            +taghid_e[super_change(tension_m,0)]
+            +'</td><td class="td_dot">'
+            +(Math.floor(ztb)/100).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_zt_ud"><td align="left">'
+            +'斬撃体技ダメージ変化'
+            +'</td><td class="td_dot">'
+            +(Math.floor(zt_ud)/100).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_ztj_u"><td align="left">'
+            +'スキルダメージ変化'
+            +'</td><td class="td_dot">'
+            +(Math.floor(ztj_u)/100).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_chivalry"><td align="left">'
+            +'騎士道精神'
+            +'</td><td class="td_dot">'
+            +(Math.floor(chivalry)/100).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_barbaroo"><td align="left">'
+            +'バルバルーの加護'
+            +'</td><td class="td_dot">'
+            +(Math.floor(barbaroo)/100).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_cr_abs"><td align="left">'
+            +'会心必中のかまえ'
+            +'</td><td class="td_dot">'
+            +(0.5).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_support"><td align="left">'
+            +'おうえん'
+            +'</td><td class="td_dot">'
+            +(0.8).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_battleogre"><td align="left">'
+            +'戦鬼開放'
+            +'</td><td class="td_dot">'
+            +0.35
+            +'</td></tr>'
+            +'<tr id="hid_hunger"><td align="left">'
+            +'飢餓'
+            +'</td><td class="td_dot">'
+            +(Math.floor(hunger)/100).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_cspell"><td align="left">'
+            +'連続呪文'
+            +'</td><td class="td_dot">'
+            +(1).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_godrage"><td align="left">'
+            +'ゴッドレイジ'
+            +'</td><td class="td_dot">'
+            +(godrage/100).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_dragonic_burst"><td align="left">'
+            +'ドラゴニックバースト'
+            +'</td><td class="td_dot">'
+            +(dragonic_burst/100).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_unique2_1"><td align="left">'
+            +'禁忌の秘法'
+            +'</td><td class="td_dot">'
+            +(unique2_1/100).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_unique2_2"><td align="left">'
+            +'血のたぎり'
+            +'</td><td class="td_dot">'
+            +(unique2_2/100).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_unique2_3"><td align="left">'
+            +'女神の奇跡・余剰回復'
+            +'</td><td class="td_dot">'
+            +(unique2_3/100).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_unique2_4"><td align="left">'
+            +'入魂'
+            +'</td><td class="td_dot">'
+            +(unique2_4/100).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_unique2_5"><td align="left">'
+            +'バーティカルパワー'
+            +'</td><td class="td_dot">'
+            +(unique2_5/100).toFixed(2)
+            +'</td></tr>'
+
+            +'<tr class="tr_top_double"><td align="left" class="padd1">'
+            +'項目&gamma; &nbsp;=&nbsp; 1+&beta;'
+            +'</td><td align="left">'
+            +'計算斬体ダメージ'
+            +'</td><td class="td_dot">'
+            +effect_att.toFixed(2)
+            +'</td></tr>'
+
+            +'<tr class="tr_top_solid"><td align="left" id="flag5" class="padd1">'
+            +'項目&delta;'
+            +'</td><td align="left">'
+            +'属性ダメージ'
+            +taghid_s[super_change(tension_m,0)]
+            +'(T'+tension_m_step(tension_m)+')'
+            +taghid_e[super_change(tension_m,0)]
+            +'</td><td class="td_dot">'
+            +(Math.floor(att)/100).toFixed(2)
+            +'</td></tr>'
+            +'<tr><td align="left">'
+            +'属性斬体ダメージ'
+            +taghid_s[super_change(tension_m,0)]
+            +'(T'+tension_m_step(tension_m)+')'
+            +taghid_e[super_change(tension_m,0)]
+            +'</td><td class="td_dot">'
+            +(Math.floor(attzt)/100).toFixed(2)
+            +'</td></tr>'
+            +'<tr><td align="left">'
+            +'全属性ダメージ'
+            +taghid_s[super_change(tension_m,0)]
+            +'(T'+tension_m_step(tension_m)+')'
+            +taghid_e[super_change(tension_m,0)]
+            +'</td><td class="td_dot">'
+            +(Math.floor(allatt)/100).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_att_force"><td align="left" colspan="2">'
+            +'属性フォース<br>'
+            +'<a3>属性+属性斬体+全属性を半減し%小数切り捨て</a3>'
+            +'</td></tr>'
+            +'<tr id="hid_att_force_power"><td align="left" colspan="2">'
+            +'フォース強化<br>'
+            +'<a3>属性フォースの半減を無効化</a3>'
+            +'</td></tr>'
+            +'<tr id="hid_force_charge"><td align="left">'
+            +'フォースチャージ'
+            +'</td><td class="td_dot">'
+            +(Math.floor(force_charge)/100).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_force_blast"><td align="left">'
+            +'フォースブラスト'
+            +'</td><td class="td_dot">'
+            +1.25
+            +'</td></tr>'
+            +'<tr id="hid_force_burst"><td align="left">'
+            +'フォースバースト'
+            +'</td><td class="td_dot">'
+            +(0.5).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_att_burst"><td align="left">'
+            +'属性バースト'
+            +'</td><td class="td_dot">'
+            +(0.5).toFixed(2)
+            +'</td></tr>'
+            +'<tr id="hid_unique3_1"><td align="left">'
+            +'闘いの遺伝子'
+            +'</td><td class="td_dot">'
+            +(0.2).toFixed(2)
+            +'</td></tr>'
+
+            +'<tr class="tr_top_double"><td align="left" class="padd1">'
+            +'項目&epsilon; &nbsp;=&nbsp; 1+&delta;'
+            +'</td><td align="left">'
+            +'計算属性ダメージ'
+            +'</td><td class="td_dot">'
+            +effect_att.toFixed(2)
+            +'</td></tr>'
+
+            +'<tr class="tr_top_solid"><td align="left" class="padd1">'
+            +'項目&zeta;'
+            +'</td><td align="left">'
+            +'系統ダメージ'
+            +'</td><td class="td_dot">'
+            +(Math.floor(sys)/100).toFixed(2)
+            +'</td></tr>'
+            
+            +'<tr>'
+            +'<td align="left" id="flag6" class="padd1">'
+            +'項目&eta;'
+            +'</td>'
+            +taghid_s[super_change(tension_m,0)]
+            +'<td align="left">'
+            +'テンション'+tension_m_step(tension_m)
+            +'</td><td class="td_dot">'
+            +(tension_m).toFixed(2)
+            +'</td></tr>'
+            +taghid_e[super_change(tension_m,0)]
+            +taghid_s[super_change_reverse(
+                super_change(tension_m,0)
+                +(super_change(eradicate_mind,0)
+                *super_change(eradicate,0)
+                *super_change(unique4_1,0)
+                *super_change(unique4_2,0)
+                *super_change(unique4_3,0)
+                *super_change(unique4_4,0)
+                *super_change(unique4_5,0)
+                *super_change(unique4_6,0)
+                *super_change(unique4_7,0)
+                *super_change(unique4_8,0))
+            ,0)]
+            +'<tr>'
+            +taghid_e[super_change_reverse(
+                super_change(tension_m,0)
+                +(super_change(eradicate_mind,0)
+                *super_change(eradicate,0)
+                *super_change(unique4_1,0)
+                *super_change(unique4_2,0)
+                *super_change(unique4_3,0)
+                *super_change(unique4_4,0)
+                *super_change(unique4_5,0)
+                *super_change(unique4_6,0)
+                *super_change(unique4_7,0)
+                *super_change(unique4_8,0))
+            ,0)]
+            +taghid_s[super_change(eradicate_mind,0)]
+            +'<td align="left">'
+            +'根絶やしマインド'
+            +'</td><td class="td_dot">'
+            +(eradicate_mind/100).toFixed(2)
+            +'</td></tr>'
+            +taghid_e[super_change(eradicate_mind,0)]
+            +taghid_s[super_change_reverse(
+                super_change(eradicate_mind,0)
+                +(super_change(eradicate,0)
+                *super_change(unique4_1,0)
+                *super_change(unique4_2,0)
+                *super_change(unique4_3,0)
+                *super_change(unique4_4,0)
+                *super_change(unique4_5,0)
+                *super_change(unique4_6,0)
+                *super_change(unique4_7,0)
+                *super_change(unique4_8,0))
+            ,0)]
+            +'<tr>'
+            +taghid_e[super_change_reverse(
+                super_change(eradicate_mind,0)
+                +(super_change(eradicate,0)
+                *super_change(unique4_1,0)
+                *super_change(unique4_2,0)
+                *super_change(unique4_3,0)
+                *super_change(unique4_4,0)
+                *super_change(unique4_5,0)
+                *super_change(unique4_6,0)
+                *super_change(unique4_7,0)
+                *super_change(unique4_8,0))
+            ,0)]
+            +taghid_s[super_change(eradicate,0)]
+            +'<td align="left">'
+            +'根絶やし'
+            +'</td><td class="td_dot">'
+            +(3).toFixed(2)
+            +'</td></tr>'
+            +taghid_e[super_change(eradicate,0)]
+            +taghid_s[super_change_reverse(
+                super_change(eradicate,0)
+                +(super_change(unique4_1,0)
+                *super_change(unique4_2,0)
+                *super_change(unique4_3,0)
+                *super_change(unique4_4,0)
+                *super_change(unique4_5,0)
+                *super_change(unique4_6,0)
+                *super_change(unique4_7,0)
+                *super_change(unique4_8,0))
+            ,0)]
+            +'<tr>'
+            +taghid_e[super_change_reverse(
+                super_change(eradicate,0)
+                +(super_change(unique4_1,0)
+                *super_change(unique4_2,0)
+                *super_change(unique4_3,0)
+                *super_change(unique4_4,0)
+                *super_change(unique4_5,0)
+                *super_change(unique4_6,0)
+                *super_change(unique4_7,0)
+                *super_change(unique4_8,0))
+            ,0)]
+            +taghid_s[super_change(unique4_1,0)]
+            +'<td align="left">'
+            +'勇者の血筋'
+            +'</td><td class="td_dot">'
+            +(0.5).toFixed(2)
+            +'</td></tr>'
+            +taghid_e[super_change(unique4_1,0)]
+            +taghid_s[super_change_reverse(
+                super_change(unique4_1,0)
+                +(super_change(unique4_2,0)
+                *super_change(unique4_3,0)
+                *super_change(unique4_4,0)
+                *super_change(unique4_5,0)
+                *super_change(unique4_6,0)
+                *super_change(unique4_7,0)
+                *super_change(unique4_8,0))
+            ,0)]
+            +'<tr>'
+            +taghid_e[super_change_reverse(
+                super_change(unique4_1,0)
+                +(super_change(unique4_2,0)
+                *super_change(unique4_3,0)
+                *super_change(unique4_4,0)
+                *super_change(unique4_5,0)
+                *super_change(unique4_6,0)
+                *super_change(unique4_7,0)
+                *super_change(unique4_8,0))
+            ,0)]
+            +taghid_s[super_change(unique4_2,0)]
+            +'<td align="left">'
+            +'ゴスロリ僧侶の祈り'
+            +'</td><td class="td_dot">'
+            +(1).toFixed(2)
+            +'</td></tr>'
+            +taghid_e[super_change(unique4_2,0)]
+            +taghid_s[super_change_reverse(
+                super_change(unique4_2,0)
+                +(super_change(unique4_3,0)
+                *super_change(unique4_4,0)
+                *super_change(unique4_5,0)
+                *super_change(unique4_6,0)
+                *super_change(unique4_7,0)
+                *super_change(unique4_8,0))
+            ,0)]
+            +'<tr>'
+            +taghid_e[super_change_reverse(
+                super_change(unique4_2,0)
+                +(super_change(unique4_3,0)
+                *super_change(unique4_4,0)
+                *super_change(unique4_5,0)
+                *super_change(unique4_6,0)
+                *super_change(unique4_7,0)
+                *super_change(unique4_8,0))
+            ,0)]
+            +taghid_s[super_change(unique4_3,0)]
+            +'<td align="left">'
+            +'勇者の覚悟'
+            +'</td><td class="td_dot">'
+            +(0.4).toFixed(2)
+            +'</td></tr>'
+            +taghid_e[super_change(unique4_3,0)]
+            +taghid_s[super_change_reverse(
+                super_change(unique4_3,0)
+                +(super_change(unique4_4,0)
+                *super_change(unique4_5,0)
+                *super_change(unique4_6,0)
+                *super_change(unique4_7,0)
+                *super_change(unique4_8,0))
+            ,0)]
+            +'<tr>'
+            +taghid_e[super_change_reverse(
+                super_change(unique4_3,0)
+                +(super_change(unique4_4,0)
+                *super_change(unique4_5,0)
+                *super_change(unique4_6,0)
+                *super_change(unique4_7,0)
+                *super_change(unique4_8,0))
+            ,0)]
+            +taghid_s[super_change(unique4_4,0)]
+            +'<td align="left">'
+            +'義侠の獣'
+            +'</td><td class="td_dot">'
+            +(1).toFixed(2)
+            +'</td></tr>'
+            +taghid_e[super_change(unique4_4,0)]
+            +taghid_s[super_change_reverse(
+                super_change(unique4_4,0)
+                +(super_change(unique4_5,0)
+                *super_change(unique4_6,0)
+                *super_change(unique4_7,0)
+                *super_change(unique4_8,0))
+            ,0)]
+            +'<tr>'
+            +taghid_e[super_change_reverse(
+                super_change(unique4_4,0)
+                +(super_change(unique4_5,0)
+                *super_change(unique4_6,0)
+                *super_change(unique4_7,0)
+                *super_change(unique4_8,0))
+            ,0)]
+            +taghid_s[super_change(unique4_5,0)]
+            +'<td align="left">'
+            +'渚の夢占い'
+            +'</td><td class="td_dot">'
+            +(1).toFixed(2)
+            +'</td></tr>'
+            +taghid_e[super_change(unique4_5,0)]
+            +taghid_s[super_change_reverse(
+                super_change(unique4_5,0)
+                +(super_change(unique4_6,0)
+                *super_change(unique4_7,0)
+                *super_change(unique4_8,0))
+            ,0)]
+            +'<tr>'
+            +taghid_e[super_change_reverse(
+                super_change(unique4_5,0)
+                +(super_change(unique4_6,0)
+                *super_change(unique4_7,0)
+                *super_change(unique4_8,0))
+            ,0)]
+            +taghid_s[super_change(unique4_6,0)]
+            +'<td align="left">'
+            +'ウォールブレイカー'
+            +'</td><td class="td_dot">'
+            +(1.2).toFixed(2)
+            +'</td></tr>'
+            +taghid_e[super_change(unique4_6,0)]
+            +taghid_s[super_change_reverse(
+                super_change(unique4_6,0)
+                +(super_change(unique4_7,0)
+                *super_change(unique4_8,0))
+            ,0)]
+            +'<tr>'
+            +taghid_e[super_change_reverse(
+                super_change(unique4_6,0)
+                +(super_change(unique4_7,0)
+                *super_change(unique4_8,0))
+            ,0)]
+            +taghid_s[super_change(unique4_7,0)]
+            +'<td align="left">'
+            +'叡智なる弟子'
+            +'</td><td class="td_dot">'
+            +(1).toFixed(2)
+            +'</td></tr>'
+            +taghid_e[super_change(unique4_7,0)]
+            +taghid_s[super_change_reverse(
+                super_change(unique4_7,0)
+                +super_change(unique4_8,0)
+            ,0)]
+            +'<tr>'
+            +taghid_e[super_change_reverse(
+                super_change(unique4_7,0)
+                +super_change(unique4_8,0)
+            ,0)]
+            +taghid_s[super_change(unique4_8,0)]
+            +'<td align="left">'
+            +'やんちゃ姫の力'
+            +'</td><td class="td_dot">'
+            +(0.4).toFixed(2)
+            +'</td></tr>'
+            +taghid_e[super_change(unique4_8,0)]
+            +taghid_s[super_change(
+                super_change(tension_m,0)
+                *super_change(eradicate_mind,0)
+                *super_change(eradicate,0)
+                *super_change(unique4_1,0)
+                *super_change(unique4_2,0)
+                *super_change(unique4_3,0)
+                *super_change(unique4_4,0)
+                *super_change(unique4_5,0)
+                *super_change(unique4_6,0)
+                *super_change(unique4_7,0)
+                *super_change(unique4_8,0)
+            ,0)]
+            +'<td align="left">'
+            +'なし'
+            +'</td><td class="td_dot">'
+            +(0).toFixed(2)
+            +'</td></tr>'
+            +taghid_e[super_change(
+                super_change(tension_m,0)
+                *super_change(eradicate_mind,0)
+                *super_change(eradicate,0)
+                *super_change(unique4_1,0)
+                *super_change(unique4_2,0)
+                *super_change(unique4_3,0)
+                *super_change(unique4_4,0)
+                *super_change(unique4_5,0)
+                *super_change(unique4_6,0)
+                *super_change(unique4_7,0)
+                *super_change(unique4_8,0)
+            ,0)]
+            
+            +'<tr class="tr_top_double"><td align="left" class="padd1">'
+            +'項目&theta; &nbsp;=&nbsp; 1+&zeta;*(1+&eta;)'
+            +'</td><td align="left">'
+            +'計算系統ダメージ'
+            +'</td><td class="td_dot">'
+            +effect_sys.toFixed(2)
+            +'</td></tr>'
+
+            +'<tr class="tr_top_solid"><td align="left" class="padd1">'
+            +'項目&kappa;'
+            +'</td><td align="left">'
+            +''
+            +'</td><td class="td_dot">'
+            +(Math.floor(sys)/100).toFixed(2)
+            +'</td></tr>'
+
+            +'</table>'
+
+            +'<br>'
+            
+            /*
+            +'floor(攻撃力<ahid id="hidB1">*<ahid id="hidc1">(</ahid><ahid id="hid1">攻撃力変化</ahid><ahid id="hido1">&nbsp;+&nbsp;</ahid><ahid id="hid2">竜の血</ahid>'
+            +'<ahid id="hido2">&nbsp;+&nbsp;</ahid><ahid id="hid3">竜のこころ</ahid><ahid id="hido3">&nbsp;+&nbsp;</ahid><ahid id="hid4">我がしもべ…</ahid><ahid id="hidc2">)</ahid></ahid>'
+            +'<ahid id="hid5">&nbsp;+&nbsp;剣魔合一</ahid><ahid id="hid6">&nbsp;+&nbsp;攻魔複合</ahid><ahid id="hid7">&nbsp;+&nbsp;攻回複合</ahid>)＝計算攻撃力<br>'
+            +'floor('+atk.toLocaleString()
+            +'<ahid id="hidf1">&nbsp;*&nbsp;'+Math.floor(atk_ud*10+dragonblood*10+unique1_1+unique1_2+100)/100
+            +'</ahid><ahid id="hidf2">&nbsp;+&nbsp;'+fusion+'</ahid><ahid id="hidf3">&nbsp;+&nbsp;'+composite
+            +'</ahid>)&nbsp;=&nbsp;'+l_atk.toLocaleString()
+            
+            +'<br><span class="out"></span>'
+            +'floor(守備力<ahid id="hidB2">*<ahid id="hidc3">(</ahid><ahid id="hid8">守備力変化</ahid><ahid id="hido7">&nbsp;+&nbsp;</ahid><ahid id="hid9">進化</ahid><ahid id="hidc4">)</ahid></ahid><ahid id="hid10">&nbsp;*&nbsp;直撃</ahid>)＝計算守備力<br>'
+            +'floor('+def.toLocaleString()
+            +'<ahid id="hidf4">&nbsp;*&nbsp;'+Math.floor(def_ud*10+evolution*100+100)/100
+            +'</ahid><ahid id="hidf5">&nbsp;*&nbsp;'+direct_hit
+            +'</ahid>)&nbsp;=&nbsp;'+l_def.toLocaleString()
+            
+            +'<br><br>'
+            +'<ahid id="hidline1" hidden>ー&nbsp;必中ライン(攻撃力*1.75＞守備力)&nbsp;ー'
+            +'<br><span class="out"></span>(攻/2-守/4)=基礎中央値で計算されます.</ahid>'
+            +'<ahid id="hidline2" hidden>ー&nbsp;準必中ライン(攻撃力*1.75≦守備力≦攻撃力*2)&nbsp;ー'
+            +'<br><span class="out"></span>[0,攻/16]=基礎値域で計算されます.<br><a3>※攻撃力不足のためオートではスキル選択されません.</a3></ahid>'
+            +'<ahid id="hidline3" hidden>ー&nbsp;最小ライン(攻撃力*2＜守備力)&nbsp;ー'
+            +'<br><span class="out"></span>基礎値は0,1のみ(等確率)で計算されます.<br><a3>※攻撃力不足のためオートではスキル選択されません.</a3></ahid>'
+            +'<br><br>'
+            
+            +'<ahid id="hidline1_base" hidden>floor(計算攻撃力&nbsp;/2&nbsp;-&nbsp;計算守備力&nbsp;/4)&nbsp;=&nbsp;基礎中央値<br>'
+            +'floor('+l_atk.toLocaleString()+'&nbsp;/2&nbsp;-&nbsp;'+l_def.toLocaleString()+'&nbsp;/4)&nbsp;=&nbsp;'+base.toLocaleString()
+            +'<br><span class="out"></span>'
+            +'基礎中央値&nbsp;-&nbsp;floor(基礎中央値/16&nbsp;+&nbsp;1)&nbsp;=&nbsp;基礎最小値<br>'
+            +base.toLocaleString()+'&nbsp;-&nbsp;floor('+base.toLocaleString()+'/16&nbsp;+&nbsp;1)&nbsp;=&nbsp;'+base_min.toLocaleString()
+            +'<br><span class="out"></span>'
+            +'基礎中央値&nbsp;+&nbsp;floor(基礎中央値/16&nbsp;+&nbsp;1)&nbsp;=&nbsp;基礎最大値<br>'
+            +base.toLocaleString()+'&nbsp;+&nbsp;floor('+base.toLocaleString()+'/16&nbsp;+&nbsp;1)&nbsp;=&nbsp;'+base_max.toLocaleString()
+            +'</ahid>'
+            +'<ahid id="hidline2_base" hidden>floor(計算攻撃力/32)&nbsp;=&nbsp;基礎中央値'
+            +'<br>floor('+l_atk.toLocaleString()+'/32)&nbsp;=&nbsp;'+base.toLocaleString()
+            +'<br><span class="out"></span>'
+            +'0&nbsp;=&nbsp;基礎最小値'
+            +'<br>'+0
+            +'<br><span class="out"></span>'
+            +'floor(計算攻撃力/16)&nbsp;=&nbsp;基礎最大値'
+            +'<br>floor('+l_atk.toLocaleString()+'/16)&nbsp;=&nbsp;'+base_max.toLocaleString()
+            +'</ahid>'
+            +'<ahid id="hidline3_base" hidden>0&nbsp;=&nbsp;基礎中央値'
+            +'<br>'+0
+            +'<br><span class="out"></span>'
+            +'0&nbsp;=&nbsp;基礎最小値'
+            +'<br>'+0
+            +'<br><span class="out"></span>'
+            +'1&nbsp;=&nbsp;基礎最大値'
+            +'<br>'+1
+            +'</ahid><br><br>'
+
+            +'\<第1階-ダメージ補正&alpha;群\><br><span class="out"></span>'
+            +'-----&nbsp;斬体ダメージ群&nbsp;-----<br>'
+            +'floor(斬or体%*味方のT補正)&nbsp;=&nbsp;補正値A1<br>'
+            +'floor('+zort_before+'*'+Math.floor(100+tension_m*100)/100+')&nbsp;=&nbsp;'+Math.floor(zort)+'<br><span class="out"></span>'
+            +'floor(斬体%*味方のT補正)&nbsp;=&nbsp;補正値A2<br>'
+            +'floor('+zt_before+'*'+Math.floor(100+tension_m*100)/100+')&nbsp;=&nbsp;'+Math.floor(zt)+'<br><span class="out"></span>'
+            +'floor(斬体ブ%*味方のT補正)&nbsp;=&nbsp;補正値A3<br>'
+            +'floor('+ztb_before+'*'+Math.floor(100+tension_m*100)/100+')&nbsp;=&nbsp;'+Math.floor(ztb)+'<br><span class="out"></span>'
+            +'斬体変化&nbsp;+&nbsp;斬体呪上昇&nbsp;+&nbsp;会心必中&nbsp;+&nbsp;おうえん<br>'
+            +'&nbsp;+&nbsp;騎士道精神&nbsp;+&nbsp;戦鬼解放&nbsp;+&nbsp;ゴッドレイジ<br>'
+            +'&nbsp;+&nbsp;飢餓&nbsp;+&nbsp;ドラゴニックバースト<br>'
+            +'&nbsp;+&nbsp;バルバルーの加護<br>'
+            +'&nbsp;+&nbsp;禁忌の秘法&nbsp;+&nbsp;血のたぎり&nbsp;=&nbsp;補正値A4<br>'
+            +zt_ud+'&nbsp+&nbsp;'+ztj_u+'&nbsp+&nbsp;'+cr_abs+'&nbsp+&nbsp;'+support+'&nbsp+&nbsp;'
+            +chivalry+'&nbsp+&nbsp;'+battleogre+'&nbsp+&nbsp;'+godrage+'&nbsp+&nbsp;'
+            +hunger+'&nbsp+&nbsp;'+dragonic_burst+'&nbsp+&nbsp;'
+            +barbaroo+'&nbsp+&nbsp;'
+            +unique2_1+'&nbsp+&nbsp;'+unique2_2+'&nbsp;=&nbsp;'
+            +Math.floor(zt_ud+ztj_u+cr_abs+support+chivalry+battleogre+godrage+hunger+dragonic_burst+barbaroo+unique2_1+unique2_2)+'<br><span class="out"></span>'
+            +"1&nbsp;+&nbsp;(A1&nbsp;+&nbsp;A2&nbsp;+&nbsp;A3&nbsp;+&nbsp;A4)/100=&nbsp;総合補正値A<br>"
+            +1+'&nbsp;+&nbsp;('+Math.floor(zort)+'&nbsp+&nbsp;'+Math.floor(zt)+'&nbsp+&nbsp;'+Math.floor(ztb)+'&nbsp+&nbsp;'
+            +Math.floor(zt_ud+ztj_u+cr_abs+support+chivalry+battleogre+godrage+hunger+dragonic_burst+barbaroo+unique2_1+unique2_2)+')/100&nbsp=&nbsp;'+Math.round(effect_zt*100)/100
+
+            +'<br><br>-----&nbsp;属性ダメージ群&nbsp;-----<br>'
+            +'floor(属性%*味方のT補正)&nbsp;=&nbsp;補正値B1<br>'
+            +'floor('+att_before+'*'+Math.floor(100+tension_m*100)/100+')&nbsp;=&nbsp;'+Math.floor(att)+'<br><span class="out"></span>'
+            +'floor(属性斬体%*味方のT補正)&nbsp;=&nbsp;補正値B2<br>'
+            +'floor('+attzt_before+'*'+Math.floor(100+tension_m*100)/100+')&nbsp;=&nbsp;'+Math.floor(attzt)+'<br><span class="out"></span>'
+            +'floor(全属性%*味方のT補正)&nbsp;=&nbsp;補正値B3<br>'
+            +'floor('+allatt_before+'*'+Math.floor(100+tension_m*100)/100+')&nbsp;=&nbsp;'+Math.floor(allatt)+'<br><span class="out"></span>'
+            +'フォースチャージ&nbsp;+&nbsp;フォースブラスト<br>'
+            +'&nbsp;+&nbsp;フォースバースト&nbsp;+&nbsp;属性バースト<br>'
+            +'&nbsp;+&nbsp;闘いの遺伝子&nbsp;=&nbsp;補正値B4<br>'
+            +force_charge+'&nbsp;+&nbsp;'+force_blast+'&nbsp;+&nbsp;'+
+            +force_burst+'&nbsp;+&nbsp;'+att_burst+'&nbsp;+&nbsp;'+
+            +unique3_1+'&nbsp;=&nbsp;'+Math.floor(force_charge+force_blast+force_burst+att_burst+unique3_1)+'<br><span class="out"></span>'
+            +'1&nbsp;+&nbsp;((B1&nbsp;+&nbsp;B2&nbsp;+&nbsp;B3)*属性フォース&nbsp;+&nbsp;B4)/100&nbsp;=&nbsp;総合補正値B<br>'
+            +1+'&nbsp;+&nbsp;('+Math.floor(att+attzt+allatt)+'*'+0.5+'&nbsp;+&nbsp;'+Math.floor(force_charge+force_blast+force_burst+att_burst+unique3_1)+')/100&nbsp;=&nbsp;'+Math.round(effect_att*100)/100
+
+            +'<br><br>-----&nbsp;系統ダメージ群&nbsp;-----<br>'
+            +'系統%<ahid id="hidCC1">&nbsp;+&nbsp;仲間モンスターの絆</ahid>&nbsp;=&nbsp;補正値C1<br>'
+            +sys_before+'<ahid id="hidCCf1">&nbsp;+&nbsp;'+friend_monster+'</ahid>&nbsp;=&nbsp;'+Math.floor(sys)+'<br><span class="out"></span>'
+            +'<ahid id="hidCC2">味方のT補正</ahid><ahid id="hidCCo1">&nbsp;+&nbsp;</ahid><ahid id="hidCC3">根絶やしマインド</ahid><ahid id="hidCCo2">&nbsp;+&nbsp;</ahid><ahid id="hidCC4">根絶やし</ahid><br>'
+            +'<ahid id="hidCCo3">&nbsp;+&nbsp;</ahid><ahid id="id=hidCC5">勇者の血筋</ahid><ahid id="hidCCo4">&nbsp;+&nbsp;</ahid><ahid id="hidCC6">勇者の覚悟</ahid><ahid id="hidCCo5" hidden>&nbsp;+&nbsp;</ahid>'
+            +'<ahid id="hidCC7" hidden>ゴスロリ僧侶の祈り</ahid>'
+            +'<ahid id="hidCC8" hidden>義侠の獣</ahid>'
+            +'<ahid id="hidCC9" hidden>渚の夢占い</ahid>'
+            +'<ahid id="hidCC10" hidden>ウォールブレイカー</ahid>'
+            +'<ahid id="hidCC11" hidden>叡智なる弟子</ahid>'
+            +'&nbsp;=&nbsp;補正値C2<br>'
+            +Math.floor(100+tension_m*100)/100+'&nbsp;+&nbsp;'+Math.floor(eradicate_mind)/100+'&nbsp;+&nbsp;'+Math.floor(eradicate)/100+'&nbsp;+&nbsp;'
+            +Math.floor(unique4_1)/100+'&nbsp;+&nbsp;'+Math.floor(unique4_3)/100+'&nbsp;+&nbsp;'+Math.floor(unique4_other)/100+'&nbsp;=&nbsp;'
+            +Math.floor(100+tension_m*100+eradicate_mind+eradicate+unique4_1+unique4_3+unique4_other)/100+'<br><span class="out"></span>'
+            +'1&nbsp;+&nbsp;(floor(C1*C2))/100&nbsp;=&nbsp;総合補正値C<br>'
+            +'1&nbsp;+&nbsp;(floor('+Math.floor(sys)+'*'+Math.floor(100+tension_m*100+eradicate_mind+eradicate+unique4_1+unique4_3+unique4_other)/100+'))/100&nbsp;=&nbsp;'+Math.round(effect_sys*100)/100
+
+            +'<br><br>-----&nbsp;耐性群&nbsp;-----<br>'
+            +'floor(斬体耐性%等倍差*敵のT補正)+等倍分&nbsp;=&nbsp;補正値D1<br>'
+            +'floor('+Math.floor(zt_t_before*100-100)+'*'+tension_y_output(zt_t_before)+')&nbsp;+&nbsp;100&nbsp;=&nbsp;'+Math.floor(zt_t*100)+'<br><span class="out"></span>'
+            +'floor(属性耐性%等倍差*敵のT補正)+等倍分&nbsp;=&nbsp;補正値D2<br>'
+            +'floor('+Math.floor(att_t_before*100-100)+'*'+tension_y_output(att_t_before)+')&nbsp;+&nbsp;100&nbsp;=&nbsp;'+Math.floor(att_t*100)+'<br><span class="out"></span>'
+            +'1&nbsp;+&nbsp;斬体耐性変化&nbsp;+&nbsp;衰弱&nbsp;+&nbsp;戦意喪失&nbsp;+&nbsp;凍結&nbsp;=&nbsp;補正値D3<br>'
+            +1+'&nbsp;+&nbsp;'+zt_t_ud+'&nbsp;+&nbsp;'+weakness+'&nbsp;+&nbsp;'+lostspirit+'&nbsp;+&nbsp;'+frozen+'&nbsp;=&nbsp;'+floor_perf((1+zt_t_ud+weakness+lostspirit+frozen)*100)/100+'<br><span class="out"></span>'
+            +'1&nbsp;+&nbsp;属性耐性変化&nbsp;=&nbsp;補正値D4<br>'
+            +1+'&nbsp;+&nbsp;'+att_t_ud+'&nbsp;=&nbsp;'+Math.floor((1+att_t_ud)*100)/100+'<br><span class="out"></span>'
+            +'1&nbsp;+&nbsp;全属性耐性変化&nbsp;=&nbsp;補正値D5<br>'
+            +1+'&nbsp;+&nbsp;'+allatt_t_ud+'&nbsp;=&nbsp;'+Math.floor((1+allatt_t_ud)*100)/100+'<br><span class="out"></span>'
+            +'1&nbsp;+&nbsp;斬体耐性強化(別アイコン)&nbsp;=&nbsp;補正値D6<br>'
+            +1+'&nbsp;+&nbsp;'+unique5_1+'&nbsp;=&nbsp;'+Math.floor((1+unique5_1)*100)/100+'<br><span class="out"></span>'
+            +'1&nbsp;+&nbsp;敵の属性フォース&nbsp;=&nbsp;補正値D7<br>'
+            +1+'&nbsp;+&nbsp;'+(1-unique5_2)+'&nbsp;=&nbsp;'+Math.floor(unique5_2*100)/100+'<br><span class="out"></span>'
+            +'(D1/100)*(D2/100)*D3*D4*D5*D6*D7&nbsp;=&nbsp;総合補正値D<br>'
+            +Math.round(zt_t*100)/100+'*'+Math.round(att_t*100)/100+'*'+Math.round((1+zt_t_ud+weakness+lostspirit+frozen)*100)/100+'*'
+            +Math.round((1+att_t_ud)*100)/100+'*'+Math.round((1+allatt_t_ud)*100)/100+'*'+Math.round((1+unique5_1)*100)/100+'*'+Math.round(unique5_2*100)/100+'&nbsp;=&nbsp;'
+            +Math.round(effect_t*100000000000000)/100000000000000
+
+            +'<br><br>-----&nbsp;会心群&nbsp;-----<br>'
+            +'超会心型'
+            +'<br>会心倍率&nbsp;(最小値&nbsp;～&nbsp;中央値&nbsp;～&nbsp;最大値)<br>'
+            +before_critical_min+'&nbsp;～&nbsp;'+before_critical+'&nbsp;～&nbsp;'+before_critical_max+'<br><span class="out"></span>'
+            +'痛恨化&nbsp;+&nbsp;floor(会心ダメージ%*味方のT補正)&nbsp;=&nbsp;補正値E1<br>'
+            +super_critical+'&nbsp;+&nbsp;floor('+before_critical_plus_p+'*'+tension_m+')&nbsp;=&nbsp;'+Math.round((super_critical+critical_plus_p)*100)/100+'<br><span class="out"></span>'
+            +'会心ダメージ上昇(閃き)&nbsp;=&nbsp;補正値E2<br>'
+            +Math.round(100+critical_plus*100)/100+'<br><span class="out"></span>'
+            +'(会心倍率&nbsp;+&nbsp;E1)*E2&nbsp;=&nbsp;総合補正値E<br>'
+            +'E.中央値：'+Math.round((before_critical+super_critical+critical_plus_p)*100)/100+'*'+Math.round(100+critical_plus*100)/100+'&nbsp;=&nbsp;'+critical+'<br>'
+            +'E.最小値：'+Math.round((before_critical_min+super_critical+critical_plus_p)*100)/100+'*'+Math.round(100+critical_plus*100)/100+'&nbsp;=&nbsp;'+critical_min+'<br>'
+            +'E.最大値：'+Math.round((before_critical_max+super_critical+critical_plus_p)*100)/100+'*'+Math.round(100+critical_plus*100)/100+'&nbsp;=&nbsp;'+critical_max
+
+            +'<br><br>-----&nbsp;他の分類&nbsp;-----<br>'
+            +'因果&nbsp;+&nbsp;因果の極み&nbsp;=&nbsp;補正値F1<br>'
+            +karma+'&nbsp;+&nbsp;'+karma_pinnacle+'&nbsp;=&nbsp;'+Math.round(karma*10+karma_pinnacle*10)/10+'<br><span class="out"></span>'
+            +'大海の浪漫&nbsp;+&nbsp;大海の浪漫ダメUP&nbsp;+&nbsp;威圧特効&nbsp;=&nbsp;補正値F2<br>'
+            +Math.round(10+ocean_romance*10)/10+'&nbsp;+&nbsp;'+ocean_romance_plus+'&nbsp;+&nbsp;'+coercion_speff+'&nbsp;=&nbsp;'+Math.round(100+ocean_romance*100+ocean_romance_plus*100+coercion_speff*100)/100+'<br><span class="out"></span>'
+            +'(1&nbsp;+&nbsp;F1)*F2&nbsp;=&nbsp;総合補正値F<br>'
+            +Math.round(10+karma*10+karma_pinnacle*10)/10+'*'+Math.round(100+ocean_romance*100+ocean_romance_plus*100+coercion_speff*100)/100+'&nbsp;=&nbsp;'+Math.round((1+karma+karma_pinnacle)*(1+ocean_romance+ocean_romance_plus+coercion_speff)*10000)/10000
+
+            +'<br><br>=======&nbsp;補正&alpha;合算&nbsp;=======<br>'
+            +'A*B*C*D*E.中央値*F&nbsp;=&nbsp;第1階-補正中央値&alpha;<br>'
+            +Math.round(effect_zt*100)/100+'*'+Math.round(effect_att*100)/100+'*'+Math.round(effect_sys*100)/100+'*'
+            +Math.round(effect_t*100000000000000)/100000000000000+'*'+critical+'*'+Math.round((1+karma+karma_pinnacle)*(1+ocean_romance+ocean_romance_plus+coercion_speff)*10000)/10000+'&nbsp;=&nbsp;'
+            +Math.round(effect_zt*effect_att*effect_sys*effect_t*critical*(1+karma+karma_pinnacle)*(1+ocean_romance+ocean_romance_plus+coercion_speff)*100000000000000)/100000000000000
+            
+
+            +'</div>';
+            */            
+        }
+
+        function zt_spe(){
+            document.getElementById("spe_r").hidden = true;
+            document.getElementById("spe_put").hidden = false;
+        }
+        /*
+        function hid_swich(){
+            flag1 = 0;
+            if(document.getElementById("atk_ud").value == 0){
+                document.getElementById("hid1").hidden = true;
+                document.getElementById("hido1").hidden = true;
+                flag1++;
+            }
+            if(document.getElementById("dragonblood").value == 0){
+                document.getElementById("hid2").hidden = true;
+                document.getElementById("hido1").hidden = true;
+                flag1++;
+                if(flag1 == 2){
+                    document.getElementById("hido2").hidden = true;
+                }
+            }
+            if(document.getElementById("unique1_1").value == 0){
+                document.getElementById("hid3").hidden = true;
+                document.getElementById("hido2").hidden = true;
+                flag1++;
+                if(flag1 == 3){
+                    document.getElementById("hido3").hidden = true;
+                }
+            }
+            if(document.getElementById("unique1_2").value == 0){
+                document.getElementById("hid4").hidden = true;
+                document.getElementById("hido3").hidden = true;
+                flag1++;
+            }
+            if(document.getElementById("fusion").checked == false){
+                document.getElementById("hid5").hidden = true;
+                document.getElementById("hidf2").hidden = true;
+            }
+            if(document.getElementById("composite").value != 1){
+                document.getElementById("hid6").hidden = true;
+            }
+            if(document.getElementById("composite").value != 2){
+                document.getElementById("hid7").hidden = true;
+            }
+            if(flag1 == 4){
+                document.getElementById("hidB1").hidden = true;
+                document.getElementById("hidf1").hidden = true;
+            }
+            if(flag1 == 3){
+                document.getElementById("hidc1").hidden = true;
+                document.getElementById("hidc2").hidden = true;
+            }
+            if(document.getElementById("composite").value == -1){
+                document.getElementById("hidf3").hidden = true;
+            }
+
+            var flag2 = 0;
+            if(document.getElementById("def_ud").value == 0){
+                document.getElementById("hid8").hidden = true;
+                flag2++;
+            }
+            if(document.getElementById("evolution").value == 0){
+                document.getElementById("hid9").hidden = true;
+                flag2++;
+            }
+            if(document.getElementById("direct_hit").checked == false){
+                document.getElementById("hid10").hidden = true;
+                document.getElementById("hidf5").hidden = true;
+            }
+            if(flag2 == 2){
+                document.getElementById("hidB2").hidden = true;
+               
+                document.getElementById("hidf4").hidden = true;
+            }
+            if(flag2 == 1){
+                document.getElementById("hido7").hidden = true;
+                document.getElementById("hidc3").hidden = true;
+                document.getElementById("hidc4").hidden = true;
+            }
+
+            if(document.getElementById("unique4_2").checked == true){
+                document.getElementById("hidCCo5").hidden = false;
+                document.getElementById("hidCC7").hidden = false;
+            }
+            if(document.getElementById("unique4_4").checked == true){
+                document.getElementById("hidCCo5").hidden = false;
+                document.getElementById("hidCC8").hidden = false;
+            }
+            if(document.getElementById("unique4_5").checked == true){
+                document.getElementById("hidCCo5").hidden = false;
+                document.getElementById("hidCC9").hidden = false;
+            }
+            if(document.getElementById("unique4_6").checked == true){
+                document.getElementById("hidCCo5").hidden = false;
+                document.getElementById("hidCC10").hidden = false;
+            }
+            if(document.getElementById("unique4_7").checked == true){
+                document.getElementById("hidCCo5").hidden = false;
+                document.getElementById("hidCC11").hidden = false;
+            }
+
+        }
+        */
+        function hid_swich2(){
+            //１・項目β
+            var flag1 = 1;
+            if(document.getElementById("lv_ud_m").value == 0){
+                document.getElementById("hid_lv_m").hidden = true;
+                if(document.getElementById("hid_lv_m_1") != null){
+                    document.getElementById("hid_lv_m_1").hidden = true;
+                }
+                if(document.getElementById("hid_lv_m_2") != null){
+                    document.getElementById("hid_lv_m_2").hidden = true;
+                }
+            }else{flag1++;}
+            if(document.getElementById("dragonblood").value == 0){
+                document.getElementById("hid_dragonblood").hidden = true;
+            }else{flag1++;}
+            if(document.getElementById("unique1_1").value == 0){
+                document.getElementById("hid_unique1_1").hidden = true;
+            }else{flag1++;}
+             if(document.getElementById("unique1_2").value == 0){
+                document.getElementById("hid_unique1_2").hidden = true;
+            }else{flag1++;}
+            document.getElementById("flag1").setAttribute('rowspan',flag1);
+        
+            //１・項目γ
+            var flag2 = 0;
+            if(document.getElementById("fusion").checked == true){
+                flag2++;
+            }
+            if(document.getElementById("composite").value != -1){
+                flag2++;
+            }
+            if(flag2==0){
+                flag2=1;
+            }
+            document.getElementById("flag2").setAttribute('rowspan',flag2);
+            
+            //１・項目ε
+            var flag3 = 1;
+            if(document.getElementById("lv_ud_y").value == 0){
+                document.getElementById("hid_lv_y").hidden = true;
+            }else{flag3++;}
+            document.getElementById("flag3").setAttribute('rowspan',flag3);
+
+            //１・項目η
+            if(document.getElementById("deepsleep").checked == false){
+                document.getElementById("hid_deepsleep").hidden = true;
+                document.getElementById("hid_deepsleep_1").hidden = true;
+            }
+            else{
+                document.getElementById("dis_deepsleep").hidden = true;
+                document.getElementById("dis_deepsleep_1").hidden = true;
+            }
+
+            //１・項目θ
+            if(document.getElementById("direct_hit").checked == false){
+                document.getElementById("hid_direct_hit").hidden = true;
+                document.getElementById("hid_direct_hit_1").hidden = true;
+            }
+            else{
+                document.getElementById("dis_direct_hit").hidden = true;
+                document.getElementById("dis_direct_hit_1").hidden = true;
+            }
+
+            //２・項目β
+            var flag4 = 3;
+            if(document.getElementById("zt_ud").value == 0){
+                document.getElementById("hid_zt_ud").hidden = true;
+            }else{flag4++;}
+            if(document.getElementById("ztj_u").value == 0){
+                document.getElementById("hid_ztj_u").hidden = true;
+            }else{flag4++;}
+            if(document.getElementById("chivalry").value == 0){
+                document.getElementById("hid_chivalry").hidden = true;
+            }else{flag4++;}
+            if(document.getElementById("barbaroo").value == 0){
+                document.getElementById("hid_barbaroo").hidden = true;
+            }else{flag4++;}
+            if(document.getElementById("cr_abs").checked == false){
+                document.getElementById("hid_cr_abs").hidden = true;
+            }else{flag4++;}
+            if(document.getElementById("support").checked == false){
+                document.getElementById("hid_support").hidden = true;
+            }else{flag4++;}
+            if(document.getElementById("battleogre").checked == false){
+                document.getElementById("hid_battleogre").hidden = true;
+            }else{flag4++;}
+            if(document.getElementById("hunger").checked == false){
+                document.getElementById("hid_hunger").hidden = true;
+            }else{flag4++;}
+            if(document.getElementById("cspell").checked == false){
+                document.getElementById("hid_cspell").hidden = true;
+            }else{flag4++;}
+            if(document.getElementById("godrage").checked == false){
+                document.getElementById("hid_godrage").hidden = true;
+            }else{flag4++;}
+            if(document.getElementById("dragonic_burst").checked == false){
+                document.getElementById("hid_dragonic_burst").hidden = true;
+            }else{flag4++;}
+            if(document.getElementById("unique2_1").checked == false){
+                document.getElementById("hid_unique2_1").hidden = true;
+            }else{flag4++;}
+            if(document.getElementById("unique2_2").checked == false){
+                document.getElementById("hid_unique2_2").hidden = true;
+            }else{flag4++;}
+            if(document.getElementById("unique2_3").checked == false){
+                document.getElementById("hid_unique2_3").hidden = true;
+            }else{flag4++;}
+            if(document.getElementById("unique2_4").checked == false){
+                document.getElementById("hid_unique2_4").hidden = true;
+            }else{flag4++;}
+            if(document.getElementById("unique2_5").checked == false){
+                document.getElementById("hid_unique2_5").hidden = true;
+            }else{flag4++;}
+            document.getElementById("flag4").setAttribute('rowspan',flag4);
+        
+            //２・項目δ
+            var flag5 = 3;
+            if(document.getElementById("att_force").checked == false){
+                document.getElementById("hid_att_force").hidden = true;
+            }else{flag5++;}
+            if(document.getElementById("att_force_power").checked == false){
+                document.getElementById("hid_att_force_power").hidden = true;
+            }else{flag5++;}
+            if(document.getElementById("force_charge").value == 0){
+                document.getElementById("hid_force_charge").hidden = true;
+            }else{flag5++;}
+            if(document.getElementById("force_blast").checked == false){
+                document.getElementById("hid_force_blast").hidden = true;
+            }else{flag5++;}
+            if(document.getElementById("force_burst").checked == false){
+                document.getElementById("hid_force_burst").hidden = true;
+            }else{flag5++;}
+            if(document.getElementById("att_burst").checked == false){
+                document.getElementById("hid_att_burst").hidden = true;
+            }else{flag5++;}
+            if(document.getElementById("unique3_1").checked == false){
+                document.getElementById("hid_unique3_1").hidden = true;
+            }else{flag5++;}
+            document.getElementById("flag5").setAttribute('rowspan',flag5);
+        
+            //２・項目η
+            var flag6 = 0;
+            if(document.getElementById("eradicate_mind").value != 0){
+                flag6++;
+            }   
+            if(document.getElementById("eradicate").checked == true){
+                flag6++;
+            }
+            if(document.getElementById("unique4_1").checked == true){
+                flag6++;
+            }
+            if(document.getElementById("unique4_2").checked == true){
+                flag6++;
+            }
+            if(document.getElementById("unique4_3").checked == true){
+                flag6++;
+            }
+            if(document.getElementById("unique4_4").checked == true){
+                flag6++;
+            }
+            if(document.getElementById("unique4_5").checked == true){
+                flag6++;
+            }
+            if(document.getElementById("unique4_6").checked == true){
+                flag6++;
+            }
+            if(document.getElementById("unique4_7").checked == true){
+                flag6++;
+            }
+            if(document.getElementById("unique4_8").checked == true){
+                flag6++;
+            }
+            if(flag6 == 0){
+                flag6 = 1;
+            }
+            document.getElementById("flag6").setAttribute('rowspan',flag6);
+        }
+
+        
+        function hidline_swich(base_flag){
+            if(base_flag == 1){
+                document.getElementById("hidline1").hidden = false;
+                document.getElementById("hidline1_base").hidden = false;
+            }
+            else if(base_flag == 2){
+                document.getElementById("hidline2").hidden = false;
+                document.getElementById("hidline2_base").hidden = false;
+            }
+            else if(base_flag == 3){
+                document.getElementById("hidline3").hidden = false;
+                document.getElementById("hidline3_base").hidden = false;
+            }
+        }
+        function tension_y_output(yvalue){
+            var y = parseFloat(document.getElementById("tension_y").value);
+            if(yvalue == 1){
+                y = 1;
+            }
+            else if(yvalue < 1){
+                y = Math.floor(100+y)/100;
+            }
+            else{
+                y = Math.floor(100-y)/100;
+            }
+            return y;
+        }
+        function floor_perf(val){
+            return Math.floor(val+0.00000001);
+        }
+
+        //0,1超関数
+        function super_change(val,zerof){
+            if(val==zerof){
+                return 1;
+            }
+            else{
+                return 0;
+            }
+        }
+        function super_change_reverse(val,zerof){
+            if(val==zerof){
+                return 0;
+            }
+            else{
+                return 1;
+            }
+        }
+        function super_change_check(id){
+            if(document.getElementById(id).checked == false){
+                return 1;
+            }
+            else{
+                return 0;
+            }
+        }
+
+        //テンション表記関数
+        function tension_m_step(tension){
+            if(tension == 0.1){
+                return 5;
+            }
+            else if(tension == 0.2){
+                return 20;
+            }
+            else if(tension == 0.3){
+                return 50;
+            }
+            else if(tension == 0.5){
+                return 100;
+            }
+            else if(tension == -0.5){
+                return -5;
+            }
+            else if(tension == -0.65){
+                return -20;
+            }
+            else if(tension == -0.80){
+                return -50;
+            }
+            else if(tension == -0.95){
+                return -100;
+            }
+            else{
+                return 0;
+            }
+        }
+        function tension_y_step(tension){
+            if(tension == 0.1){
+                return 5;
+            }
+            else if(tension == 0.2){
+                return 20;
+            }
+            else if(tension == 0.3){
+                return 50;
+            }
+            else if(tension == 0.5){
+                return 100;
+            }
+            else if(tension == -0.1){
+                return -5;
+            }
+            else if(tension == -0.2){
+                return -20;
+            }
+            else if(tension == -0.3){
+                return -50;
+            }
+            else if(tension == -0.5){
+                return -100;
+            }
+            else{
+                return 0;
+            }
+        }
+
+        //職業別入力ガイド処理
+        function connectform(form,frag,val){
+            if(frag != val && 0 != val){
+                document.getElementById(form).disabled = true;
+                document.getElementById(form).value = 0;
+                document.getElementById(form).checked = false;
+            }
+            else{
+                document.getElementById(form).disabled = false;
+            }
+        }
+        function connectform_null(form,frag,val){
+            if(frag != val && 0 != val){
+                document.getElementById(form).disabled = true;
+            }
+            else{
+                document.getElementById(form).disabled = false;
+            }
+        }
+        function connectform_clear(form,frag,val){
+            if(frag != val && 0 != val){
+                document.getElementById(form).disabled = true;
+                document.getElementById(form).value = null;
+                document.getElementById(form).checked = false;
+            }
+            else{
+                document.getElementById(form).disabled = false;
+            }
+        }
+
+        //未入力ガイド
+        function null_zero(nul){
+            if(document.getElementById(nul).value == ''){
+                document.getElementById(nul).value = 0;
+            }
+            if(parseInt(document.getElementById(nul).value) > 999999
+            || parseInt(document.getElementById(nul).value) < -10000){
+                document.getElementById(nul).value = 0;
+            }
+        }
+        function null_one(nul){
+            if(document.getElementById(nul).value == ''){
+                document.getElementById(nul).value = 1;
+            }
+            if(parseInt(document.getElementById(nul).value) > 999999
+            || parseInt(document.getElementById(nul).value) < -10000){
+                document.getElementById(nul).value = 1;
+            }
+        }
+        function null_t100(nul){
+            if(document.getElementById(nul).value == ''){
+                document.getElementById(nul).value = 100;
+            }
+            if(parseInt(document.getElementById(nul).value) > 999999
+            || parseInt(document.getElementById(nul).value) < -10000){
+                document.getElementById(nul).value = 100;
+            }
+        }
+        function null_lv(nul,toplv,bottomlv){
+            if(document.getElementById(nul).value == ''){
+                document.getElementById(nul).value = 0;
+            }
+            if(parseInt(document.getElementById(nul).value) > toplv){
+                document.getElementById(nul).value = parseInt(toplv);
+            }
+            if(parseInt(document.getElementById(nul).value) < bottomlv){
+                document.getElementById(nul).value = parseInt(bottomlv);
+            }
+        }
+
+        //allonbutton
+        function on_flag(id){
+            if(document.getElementById(id).disabled == false){
+                document.getElementById(id).checked = true;
+            }
+        }
+
+        //サンプルデータbutton
+        function sampledata(){
+            document.getElementById("atk").value = parseInt(1700);
+            document.getElementById("def").value = parseInt(2200);
+            document.getElementById("atk_ud").value = 4;
+            document.getElementById("skill_base").value = parseInt(900);
+            document.getElementById("zort").value = parseInt(20);
+            document.getElementById("zt").value = parseInt(60);
+            document.getElementById("ztb").value = parseInt(0);
+            document.getElementById("att").value = parseInt(16);
+            document.getElementById("attzt").value = parseInt(50);
+            document.getElementById("allatt").value = parseInt(25);
+            document.getElementById("sys").value = parseInt(30);
+            document.getElementById("nam").value = parseInt(0);
+            document.getElementById("skl").value = parseInt(0);
+            document.getElementById("zt_t").value = parseInt(100);
+            document.getElementById("att_t").value = parseInt(140);
+        }
+
+        //増減button
+        function pm_input(id,val,topval,bottomval){
+            if(document.getElementById(id).value == ''){
+                document.getElementById(id).value = parseInt(0);
+            }
+            document.getElementById(id).value = parseInt(document.getElementById(id).value) + parseInt(val);
+            if(parseInt(document.getElementById(id).value) > topval){
+                document.getElementById(id).value = parseInt(topval);
+            }
+            if(parseInt(document.getElementById(id).value) < bottomval){
+                document.getElementById(id).value = parseInt(bottomval);
+            }
+        }
+	</script>
+</body>
+
+</html>
