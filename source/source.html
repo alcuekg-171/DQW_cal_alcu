@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>斬撃体技ダメージ計算</title>
+	<style>
+		/* CSS */
+    </style>
+</head>
+
+<body>
+	<!-- 表示 -->
+    <h1>参考元</h1>
+    <h2>五十音順</h2>
+    <h3>参考にさせていただきました検証勢の皆様に多大なる感謝を申し上げます.</h3>
+
+    <!--
+        ・&nbsp;(ゆきしば&nbsp;さん)<br>
+        &emsp;<a href=""></a>
+        <br><br>
+    -->
+
+    <main_contents>
+        ・会心ガードの倍率・モンスター別<br>
+        &emsp;&emsp;16章9話・ゴーレム&nbsp;(みるきぃ&nbsp;さん)<br>
+        &emsp;&emsp;<a href="https://x.com/MilkyResMys/status/1908840586486112574">https://x.com/MilkyResMys/status/1908840586486112574</a><br>
+        &emsp;&emsp;桃白白&nbsp;(えるく)<br>
+        &emsp;&emsp;<a href="https://x.com/ALCU_1/status/1908939107033883092">https://x.com/ALCU_1/status/1908939107033883092</a><br>
+        &emsp;&emsp;ドン・モグーラ&nbsp;(えるく)<br>
+        &emsp;&emsp;<a href="https://x.com/ALCU_1/status/1932141354009956779">https://x.com/ALCU_1/status/1932141354009956779</a><br>
+        &emsp;&emsp;ピッコロ大魔王&nbsp;(えるく)<br>
+        &emsp;&emsp;<a href="https://x.com/ALCU_1/status/1910535031275294723">https://x.com/ALCU_1/status/1910535031275294723</a><br>
+        &emsp;&emsp;魔王の地図・魔王バラモス&nbsp;(えるく)<br>
+        &emsp;&emsp;<a href="https://x.com/ALCU_1/status/1911578982405095472">https://x.com/ALCU_1/status/1911578982405095472</a><br>
+        &emsp;&emsp;魔王の地図・冥王ネルゲル&nbsp;(えるく)<br>
+        &emsp;&emsp;<a href="https://x.com/ALCU_1/status/1917926949328195884">https://x.com/ALCU_1/status/1917926949328195884</a>
+        <br><br>
+        ・会心ダメージ上昇の補正位置&nbsp;(みるきぃ&nbsp;さん)<br>
+        &emsp;<a href="https://x.com/MilkyResMys/status/1889979955100155951">https://x.com/MilkyResMys/status/1889979955100155951</a>
+        <br><br>
+        ・会心の計算式&nbsp;(みるきぃ&nbsp;さん)<br>
+        &emsp;<a href="https://x.com/MilkyResMys/status/1517111993337282560">https://x.com/MilkyResMys/status/1517111993337282560</a>
+        <br><br>
+        ・基礎値の計算式&nbsp;(みるきぃ&nbsp;さん)<br>
+        &emsp;<a href="https://x.com/MilkyResMys/status/1221421974066327552">https://x.com/MilkyResMys/status/1221421974066327552</a>
+        <br><br>
+        ・斬撃体技耐性変化,プラス段階の倍率&nbsp;(みるきぃ&nbsp;さん)<br>
+        &emsp;<a href="https://x.com/MilkyResMys/status/1871890832334418251">https://x.com/MilkyResMys/status/1871890832334418251</a>
+        <br><br>
+        ・斬撃体技耐性変化,マイナス段階の倍率nbsp;(みるきぃ&nbsp;さん)<br>
+        &emsp;<a href="https://x.com/MilkyResMys/status/1866402755109347424">https://x.com/MilkyResMys/status/1866402755109347424</a>
+        <br><br>
+        ・衰弱の倍率&nbsp;(みんドラ&nbsp;さん)<br>
+        &emsp;<a href="https://9db.jp/dqwalk/data/9105">https://9db.jp/dqwalk/data/9105</a>
+        <br><br>
+        ・戦意喪失の倍率&nbsp;(ゆきしば&nbsp;さん)<br>
+        &emsp;<a href="https://youtu.be/0wMkfLjA0Eg?si=0JNVrLONKu3_hgGA">https://youtu.be/0wMkfLjA0Eg?si=0JNVrLONKu3_hgGA</a>
+        <br><br>
+        ・凍結の倍率&nbsp;(ゆきしば&nbsp;さん)<br>
+        &emsp;<a href="https://youtu.be/4I1yU3VVHOg?si=9cZnPI-dpkrXThP5">https://youtu.be/4I1yU3VVHOg?si=9cZnPI-dpkrXThP5</a>
+        <br><br>
+        ・ドラゴニックバーストの倍率&nbsp;(みるきぃ&nbsp;さん)<br>
+        &emsp;<a href="https://x.com/MilkyResMys/status/1944029599132004849">https://x.com/MilkyResMys/status/1944029599132004849</a>
+        <br><br>
+        ・ドラゴンの飢餓の倍率&nbsp;(みるきぃ&nbsp;さん)<br>
+        &emsp;<a href="https://x.com/MilkyResMys/status/1943625674952245485">https://x.com/MilkyResMys/status/1943625674952245485</a>
+        <br><br>
+        ・バルバルーの加護の倍率&nbsp;(みるきぃ&nbsp;さん)<br>
+        &emsp;<a href="https://x.com/MilkyResMys/status/1839234338111762817">https://x.com/MilkyResMys/status/1839234338111762817</a>
+        <br><br>
+        ・竜のこころのステータス影響&nbsp;(みんドラ&nbsp;さん)<br>
+        &emsp;<a href="https://9db.jp/dqwalk/data/11964">https://9db.jp/dqwalk/data/11964</a>
+        <br><br>
+        ・我がしもべたちよ力を貸せのステータス影響&nbsp;(みんドラ&nbsp;さん)<br>
+        &emsp;<a href="https://9db.jp/dqwalk/data/15630">https://9db.jp/dqwalk/data/15630</a>
+        <br><br>
+    </main_contents>
+
+    <script>
+		// JavaScript
+		console.log("JavaScript");
+
+	</script>
+</body>
+
+</html>
